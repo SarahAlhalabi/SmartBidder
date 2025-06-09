@@ -1,0 +1,285 @@
+"use client"
+
+import { useEffect, useState } from "react"
+import { Link } from "react-router-dom"
+import { Plus, Search, MoreVertical, Eye, Edit } from "lucide-react"
+import axios from "axios"
+import { useLanguage } from "../../contexts/LanguageContext"
+import Header from "../../components/common/Header"
+
+const ProjectsList = () => {
+  const { t, isRTL } = useLanguage()
+  const [searchTerm, setSearchTerm] = useState("")
+  const [statusFilter, setStatusFilter] = useState("all")
+  const [projects, setProjects] = useState([])
+  const [editingProject, setEditingProject] = useState(null)
+
+const [formData, setFormData] = useState({
+  title: "",
+  description: "",
+  idea_summary: "",
+  problem_solving: "",
+  category: "",
+  readiness_level: "",
+  status: "",
+  feasibility_study: {
+    current_revenue: "",
+    funding_required: "",
+    marketing_investment_percentage: "",
+    team_investment_percentage: "",
+    expected_monthly_revenue: "",
+    roi_period_months: "",
+    expected_profit_margin: "",
+    growth_opportunity: "",
+  },
+})
+
+
+  useEffect(() => {
+    const fetchProjects = async () => {
+      try {
+        const token = localStorage.getItem("accessToken")
+        const res = await axios.get("http://localhost:8000/projectowner/my-projects/", {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+        setProjects(res.data)
+      } catch (error) {
+        console.error("Error fetching projects:", error)
+      }
+    }
+
+    fetchProjects()
+  }, [])
+
+  const handleEdit = async () => {
+    try {
+      const token = localStorage.getItem("accessToken")
+      await axios.patch(
+  `http://127.0.0.1:8000/projectowner/my-projects/${editingProject.id}/`,
+  formData,
+  {
+    headers: { Authorization: `Bearer ${token}` },
+  }
+)
+
+      alert("Project updated successfully!")
+      setEditingProject(null)
+      window.location.reload()
+    } catch (error) {
+      console.error("Error updating project:", error)
+      alert("Failed to update project.")
+    }
+  }
+
+  const filteredProjects = projects.filter((project) => {
+    const matchesSearch = project.title.toLowerCase().includes(searchTerm.toLowerCase())
+    const matchesStatus = statusFilter === "all" || project.status === statusFilter
+    return matchesSearch && matchesStatus
+  })
+
+  const getStatusColor = (status) => {
+    switch (status) {
+      case "active":
+        return "bg-green-100 text-green-800"
+      case "negotiation":
+        return "bg-yellow-100 text-yellow-800"
+      case "closed":
+        return "bg-gray-100 text-gray-800"
+      default:
+        return "bg-gray-100 text-gray-800"
+    }
+  }
+
+  return (
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      <Header />
+      <div className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between mb-8">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">{t("myProjects")}</h1>
+            <p className="text-gray-600 dark:text-gray-400 mt-2">Manage and track your projects</p>
+          </div>
+          <Link to="/project-owner/create-project" className="btn-primary inline-flex items-center">
+            <Plus className={`w-4 h-4 ${isRTL ? "ml-2" : "mr-2"}`} />
+            {t("createProject")}
+          </Link>
+        </div>
+
+        <div className="card mb-6 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
+          <div className="flex flex-col sm:flex-row gap-4 p-4">
+            <div className="flex-1 relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+              <input
+                type="text"
+                placeholder="Search projects..."
+                className="input-field pl-10 dark:bg-gray-900 dark:text-white"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
+            <div className="sm:w-48">
+              <select
+                className="input-field dark:bg-gray-900 dark:text-white"
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+              >
+                <option value="all">All Status</option>
+                <option value="active">{t("active")}</option>
+                <option value="negotiation">{t("negotiation")}</option>
+                <option value="closed">{t("closed")}</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+          {filteredProjects.map((project) => (
+            <div
+              key={project.id}
+              className="card bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white"
+            >
+              <div className="flex items-start justify-between mb-4">
+                <div className="flex-1">
+                  <h3 className="text-lg font-semibold mb-2">{project.title}</h3>
+                  <span className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(project.status)}`}>
+                    {t(project.status)}
+                  </span>
+                </div>
+                <button className="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+                  <MoreVertical className="w-4 h-4" />
+                </button>
+              </div>
+
+              <p className="text-gray-600 dark:text-gray-300 text-sm mb-4 line-clamp-2">{project.description}</p>
+
+              <div className="text-sm space-y-2">
+                <div><strong>Category:</strong> {project.category}</div>
+                <div><strong>Idea:</strong> {project.idea_summary}</div>
+                <div><strong>Problem:</strong> {project.problem_solving}</div>
+              </div>
+
+              <div className="flex space-x-2 mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+                <button className="flex-1 btn-secondary text-sm py-2 inline-flex items-center justify-center">
+                  <Eye className="w-4 h-4 mr-1" />
+                  View
+                </button>
+                <button
+              onClick={() => {
+  setEditingProject(project)
+  setFormData({
+    title: project.title,
+    description: project.description,
+    idea_summary: project.idea_summary,
+    problem_solving: project.problem_solving,
+    category: project.category || "",
+    readiness_level: project.readiness_level || "",
+    status: project.status || "",
+    feasibility_study: project.feasibility_study || {
+      current_revenue: "",
+      funding_required: "",
+      marketing_investment_percentage: "",
+      team_investment_percentage: "",
+      expected_monthly_revenue: "",
+      roi_period_months: "",
+      expected_profit_margin: "",
+      growth_opportunity: "",
+    },
+  })
+}}
+
+
+                  className="flex-1 btn-primary text-sm py-2 inline-flex items-center justify-center"
+                >
+                  <Edit className="w-4 h-4 mr-1" />
+                  Edit
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {editingProject && (
+        <div className="fixed inset-0 z-50 bg-black bg-opacity-50 flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg w-full max-w-xl max-h-[90vh] overflow-y-auto">
+            <h2 className="text-xl font-bold mb-4 text-gray-900 dark:text-white">Edit Project</h2>
+
+            <label className="block text-sm font-medium mb-1">Title</label>
+            <input className="input-field mb-3" value={formData.title} onChange={(e) => setFormData({ ...formData, title: e.target.value })} />
+
+            <label className="block text-sm font-medium mb-1">Description</label>
+            <textarea className="input-field mb-3" rows="2" value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} />
+
+            <label className="block text-sm font-medium mb-1">Idea Summary</label>
+            <input className="input-field mb-3" value={formData.idea_summary} onChange={(e) => setFormData({ ...formData, idea_summary: e.target.value })} />
+
+            <label className="block text-sm font-medium mb-1">Problem Solving</label>
+            <input className="input-field mb-4" value={formData.problem_solving} onChange={(e) => setFormData({ ...formData, problem_solving: e.target.value })} />
+<label className="block text-sm font-medium mb-1">Category</label>
+<select
+  className="input-field mb-3"
+  value={formData.category}
+  onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+>
+  <option value="medical">Medical</option>
+  <option value="general_trade">General Trade</option>
+  <option value="construction">Construction</option>
+  <option value="business">Business</option>
+  <option value="other">Other</option>
+</select>
+
+<label className="block text-sm font-medium mb-1">Readiness Level</label>
+<select
+  className="input-field mb-3"
+  value={formData.readiness_level}
+  onChange={(e) => setFormData({ ...formData, readiness_level: e.target.value })}
+>
+  <option value="idea">Idea</option>
+  <option value="prototype">Prototype</option>
+  <option value="existing">Existing Project</option>
+</select>
+
+<label className="block text-sm font-medium mb-1">Status</label>
+<select
+  className="input-field mb-3"
+  value={formData.status}
+  onChange={(e) => setFormData({ ...formData, status: e.target.value })}
+>
+  <option value="active">Active</option>
+  <option value="under_negotiation">Under Negotiation</option>
+  <option value="closed">Closed</option>
+</select>
+
+            <h3 className="text-lg font-semibold mt-6 mb-3">Feasibility Study</h3>
+
+            {Object.entries(formData.feasibility_study).map(([key, value]) => (
+              <div key={key} className="mb-3">
+                <label className="block text-sm font-medium capitalize mb-1">{key.replace(/_/g, " ")}</label>
+                <input
+                  className="input-field"
+                  value={value}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      feasibility_study: {
+                        ...formData.feasibility_study,
+                        [key]: e.target.value,
+                      },
+                    })
+                  }
+                />
+              </div>
+            ))}
+
+            <div className="flex justify-end space-x-2 mt-4">
+              <button className="btn-secondary" onClick={() => setEditingProject(null)}>Cancel</button>
+              <button className="btn-primary" onClick={handleEdit}>Save</button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+export default ProjectsList
