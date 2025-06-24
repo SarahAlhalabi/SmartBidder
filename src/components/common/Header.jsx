@@ -64,7 +64,8 @@ const Header = () => {
                     <User className="w-4 h-4 text-white" />
                   </div>
                   <div className="text-sm text-left">
-                    <p className="font-medium text-gray-900 dark:text-gray-100">{user.name}</p>
+                    <p className="font-medium text-gray-900 dark:text-gray-100">{user.username}</p>
+
                     <p className="text-gray-500 dark:text-gray-400 capitalize">{user.role?.replace("-", " ")}</p>
                   </div>
                   <ChevronDown className="w-4 h-4 text-gray-600 dark:text-gray-300" />

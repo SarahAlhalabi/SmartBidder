@@ -1,13 +1,14 @@
 "use client"
 
-import { useEffect, useState } from "react"
-import { Mail, Phone, CalendarDays, MapPin } from "lucide-react"
+import React, { useEffect, useState } from "react"
+import { Mail, Phone } from "lucide-react"
 import Header from "../../components/common/Header"
 import axios from "axios"
 import { Link } from "react-router-dom"
 
 const Profile = () => {
   const [userData, setUserData] = useState(null)
+  const [newImage, setNewImage] = useState(null)
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -26,6 +27,39 @@ const Profile = () => {
     fetchProfile()
   }, [])
 
+  // ✅ رفع الصورة تلقائياً عند اختيار صورة جديدة
+  useEffect(() => {
+    const uploadImage = async () => {
+      if (!newImage) return
+      const formData = new FormData()
+      formData.append("profile_picture", newImage)
+
+      try {
+        const token = localStorage.getItem("accessToken")
+        await axios.patch(
+          "http://127.0.0.1:8000/projectowner/project-owner/update-profile/",
+          formData,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "multipart/form-data",
+            },
+          }
+        )
+
+        // تحديث العرض بعد الرفع
+        setUserData((prev) => ({
+          ...prev,
+          profile_picture: URL.createObjectURL(newImage),
+        }))
+      } catch (error) {
+        console.error("Error uploading profile picture:", error)
+      }
+    }
+
+    uploadImage()
+  }, [newImage])
+
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <Header />
@@ -41,12 +75,21 @@ const Profile = () => {
             {/* Side Profile Card */}
             <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md overflow-hidden">
               <div className="h-28 bg-gradient-to-r from-green-500 to-emerald-600 relative">
-                <div className="w-24 h-24 rounded-full border-4 border-white dark:border-gray-900 absolute left-1/2 transform -translate-x-1/2 -bottom-12 bg-gray-300 overflow-hidden">
-                  <img
-                    src={userData.profile_picture || "/placeholder.svg"}
-                    alt="Profile"
-                    className="object-cover w-full h-full"
-                  />
+                <div className="w-24 h-24 rounded-full border-4 border-white dark:border-gray-900 absolute left-1/2 transform -translate-x-1/2 -bottom-12 overflow-hidden bg-gray-300">
+                  <div className="relative w-full h-full group">
+                    <img
+                      src={userData.profile_picture || "/placeholder.svg"}
+                      alt=""
+                      className="object-cover w-full h-full"
+                    />
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => setNewImage(e.target.files[0])}
+                      className="absolute inset-0 opacity-0 cursor-pointer"
+                      title="Change Profile Picture"
+                    />
+                  </div>
                 </div>
               </div>
               <div className="pt-16 pb-6 px-6 text-center">

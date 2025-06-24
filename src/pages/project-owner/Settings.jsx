@@ -5,7 +5,7 @@ import { Mail, Phone, Lock, Bell, Globe, Check, Edit } from "lucide-react"
 import Header from "../../components/common/Header"
 import { useLanguage } from "../../contexts/LanguageContext"
 import { useAuth } from "../../contexts/AuthContext"
-
+import axios from "axios"
 const SettingsPage = () => {
   const { t, language, changeLanguage } = useLanguage()
   const { user } = useAuth()
@@ -51,10 +51,36 @@ const SettingsPage = () => {
     // TODO: API call
   }
 
-  const handlePasswordSubmit = (e) => {
-    e.preventDefault()
-    console.log("Updating password:", passwordData)
-  }
+ const handlePasswordSubmit = async (e) => {
+  e.preventDefault();
+  const token = localStorage.getItem("accessToken");
+
+  try {
+    const res = await axios.post(
+      "http://127.0.0.1:8000/accounts/change-password/",
+      passwordData,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    alert("✅ " + res.data.detail);
+    setPasswordData({
+      current_password: "",
+      new_password: "",
+      confirm_password: "",
+    });
+    setShowPasswordForm(false);
+  } catch (error) {
+  console.error("Server error:", error.response?.data || error.message);
+  const message =
+    error.response?.data?.detail || "❌ Failed to update password.";
+  alert(message);
+}
+
+};
+
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">

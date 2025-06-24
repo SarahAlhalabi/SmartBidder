@@ -1,253 +1,236 @@
 "use client"
-import { useState } from "react"
-import { Send, Search, MessageSquare, Star } from "lucide-react"
+
+import { useState, useEffect, useRef } from "react"
+import { Send, Search, MessageSquare } from "lucide-react"
 import { useLanguage } from "../../contexts/LanguageContext"
 import Header from "../../components/common/Header"
+import axios from "axios"
 
 const InvestorMessages = () => {
   const { t, isRTL } = useLanguage()
   const [selectedConversation, setSelectedConversation] = useState(null)
   const [newMessage, setNewMessage] = useState("")
   const [searchTerm, setSearchTerm] = useState("")
+  const [conversations, setConversations] = useState([])
+  const [messages, setMessages] = useState([])
+  const [messagesLoaded, setMessagesLoaded] = useState(false)
+  const messagesEndRef = useRef(null)
 
-  // Mock conversations data
-  const conversations = [
-    {
-      id: 1,
-      projectOwnerName: "Sarah Johnson",
-      projectOwnerImage: "/placeholder.svg?height=40&width=40",
-      projectTitle: "AI-Powered E-commerce Platform",
-      lastMessage: "Thank you for your interest! I'd be happy to discuss the technical details.",
-      timestamp: "2024-01-20T10:30:00Z",
-      unread: 1,
-      status: "negotiation",
-      projectOwnerRating: 4.8,
-    },
-    {
-      id: 2,
-      projectOwnerName: "Michael Chen",
-      projectOwnerImage: "/placeholder.svg?height=40&width=40",
-      projectTitle: "Sustainable Energy Solution",
-      lastMessage: "Great! Let's schedule a call to discuss the partnership terms.",
-      timestamp: "2024-01-19T15:45:00Z",
-      unread: 0,
-      status: "active",
-      projectOwnerRating: 4.7,
-    },
-    {
-      id: 3,
-      projectOwnerName: "Emily Rodriguez",
-      projectOwnerImage: "/placeholder.svg?height=40&width=40",
-      projectTitle: "Healthcare Mobile App",
-      lastMessage: "I appreciate your healthcare expertise. Your insights would be valuable.",
-      timestamp: "2024-01-18T09:15:00Z",
-      unread: 2,
-      status: "negotiation",
-      projectOwnerRating: 4.9,
-    },
-  ]
+  useEffect(() => {
+    const fetchConversations = async () => {
+      try {
+        const token = localStorage.getItem("accessToken")
+        const res = await axios.get("http://127.0.0.1:8000/investor/conversations/", {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+        setConversations(res.data || [])
+      } catch (err) {
+        console.error("❌ Error fetching conversations", err)
+      }
+    }
 
-  // Mock messages for selected conversation
-  const messages = selectedConversation
-    ? [
-        {
-          id: 1,
-          senderId: "owner",
-          senderName: selectedConversation.projectOwnerName,
-          content: "Thank you for your investment offer! I'm impressed by your background in the industry.",
-          timestamp: "2024-01-20T09:00:00Z",
-          isInvestor: false,
-        },
-        {
-          id: 2,
-          senderId: "investor",
-          senderName: "You",
-          content:
-            "I'm excited about the potential of your platform. Could you share more details about the AI algorithms you're using?",
-          timestamp: "2024-01-20T09:15:00Z",
-          isInvestor: true,
-        },
-        {
-          id: 3,
-          senderId: "owner",
-          senderName: selectedConversation.projectOwnerName,
-          content:
-            "We're using a combination of collaborative filtering and deep learning models. I can send you our technical documentation.",
-          timestamp: "2024-01-20T09:30:00Z",
-          isInvestor: false,
-        },
-        {
-          id: 4,
-          senderId: "investor",
-          senderName: "You",
-          content:
-            "That would be great. I'm also interested in discussing the go-to-market strategy and potential partnerships.",
-          timestamp: "2024-01-20T09:45:00Z",
-          isInvestor: true,
-        },
-      ]
-    : []
+    fetchConversations()
+  }, [])
 
-  const filteredConversations = conversations.filter(
-    (conv) =>
-      conv.projectOwnerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      conv.projectTitle.toLowerCase().includes(searchTerm.toLowerCase()),
-  )
+  const loadConversation = async (conversation) => {
+    if (!conversation) return
 
-  const handleSendMessage = () => {
-    if (newMessage.trim() && selectedConversation) {
-      // In real app, this would send the message via API
-      console.log("Sending message:", newMessage)
-      setNewMessage("")
+    setSelectedConversation(conversation)
+    setMessagesLoaded(false)
+
+    try {
+      const token = localStorage.getItem("accessToken")
+      const res = await axios.get(
+        `http://127.0.0.1:8000/investor/conversations/${conversation.offer_id}/`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      )
+      setMessages(Array.isArray(res.data) ? res.data : res.data.results || [])
+      setMessagesLoaded(true)
+
+      await axios.post(
+        `http://127.0.0.1:8000/investor/messages/${conversation.offer_id}/mark-read/`,
+        {},
+        { headers: { Authorization: `Bearer ${token}` } }
+      )
+
+      setConversations((prev) =>
+        prev.map((c) =>
+          c.offer_id === conversation.offer_id ? { ...c, is_read: true } : c
+        )
+      )
+    } catch (err) {
+      console.error("❌ Error loading messages", err)
     }
   }
+
+  const handleSendMessage = async () => {
+    if (!newMessage.trim() || !selectedConversation) return
+
+    try {
+      const token = localStorage.getItem("accessToken")
+      const res = await axios.post(
+        `http://127.0.0.1:8000/investor/conversations/${selectedConversation.offer_id}/send/`,
+        { message: newMessage },
+        { headers: { Authorization: `Bearer ${token}` } }
+      )
+      setMessages((prev) => [...prev, res.data])
+      setNewMessage("")
+      scrollToBottom()
+    } catch (err) {
+      console.error("❌ Error sending message", err)
+    }
+  }
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
+  }
+
+  useEffect(scrollToBottom, [messages])
 
   const formatTime = (timestamp) => {
     const date = new Date(timestamp)
     const now = new Date()
     const diffInHours = Math.floor((now - date) / (1000 * 60 * 60))
-
     if (diffInHours < 1) return "Just now"
     if (diffInHours < 24) return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
     return date.toLocaleDateString()
   }
 
-  return (
-    <div className="min-h-screen bg-gray-50">
-      <Header />
+  const filteredConversations = conversations.filter(
+    (conv) =>
+      conv.other_user_full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      conv.project_title?.toLowerCase().includes(searchTerm.toLowerCase())
+  )
 
-      <div className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">{t("messages")}</h1>
-          <p className="text-gray-600 mt-2">Communicate with project owners and negotiate deals</p>
+  return (
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      <Header />
+      <div className="max-w-screen-xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+        <div className="mb-6">
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">{t("messages")}</h1>
+          <p className="text-gray-600 dark:text-gray-300 mt-2">Communicate with project owners and negotiate deals</p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-[600px]">
-          {/* Conversations List */}
-          <div className="lg:col-span-1">
-            <div className="card h-full flex flex-col">
-              <div className="p-4 border-b border-gray-200">
+        <div className="flex flex-col lg:flex-row gap-6" style={{ height: "75vh" }}>
+          <div className="w-full lg:w-[360px]">
+            <div className="bg-white dark:bg-gray-800 shadow rounded-xl h-full flex flex-col overflow-hidden">
+              <div className="p-4 border-b border-gray-200 dark:border-gray-700">
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                   <input
                     type="text"
                     placeholder="Search conversations..."
-                    className="input-field pl-10"
+                    className="input-field pl-10 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400"
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                   />
                 </div>
               </div>
-
               <div className="flex-1 overflow-y-auto">
-                {filteredConversations.map((conversation) => (
-                  <div
-                    key={conversation.id}
-                    onClick={() => setSelectedConversation(conversation)}
-                    className={`p-4 border-b border-gray-100 cursor-pointer hover:bg-gray-50 transition-colors ${
-                      selectedConversation?.id === conversation.id ? "bg-primary-50 border-primary-200" : ""
-                    }`}
-                  >
-                    <div className="flex items-start space-x-3">
-                      <img
-                        src={conversation.projectOwnerImage || "/placeholder.svg"}
-                        alt={conversation.projectOwnerName}
-                        className="w-10 h-10 rounded-full object-cover"
-                      />
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center justify-between mb-1">
-                          <div className="flex items-center space-x-2">
-                            <h3 className="text-sm font-medium text-gray-900 truncate">
-                              {conversation.projectOwnerName}
+                {filteredConversations.length === 0 ? (
+                  <p className="text-center text-gray-500 dark:text-gray-400 p-4">
+                    {conversations.length === 0 && searchTerm === "" ? "Loading..." : "No conversations found"}
+                  </p>
+                ) : (
+                  filteredConversations.map((conversation) => (
+                    <div
+                      key={conversation.offer_id}
+                      onClick={() => loadConversation(conversation)}
+                      className={`p-4 border-b border-gray-100 dark:border-gray-700 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors ${
+                        selectedConversation?.offer_id === conversation.offer_id
+                          ? "bg-blue-50 dark:bg-blue-900 border-blue-200"
+                          : ""
+                      }`}
+                    >
+                      <div className="flex items-start space-x-3">
+                        <img
+                          src={"/placeholder.svg"}
+                          alt={conversation.other_user_full_name}
+                          className="w-10 h-10 rounded-full object-cover ring-2 ring-blue-500"
+                        />
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center justify-between mb-1">
+                            <h3 className="text-sm font-medium text-gray-900 dark:text-white truncate">
+                              {conversation.other_user_full_name}
                             </h3>
                             <div className="flex items-center space-x-1">
-                              <Star className="w-3 h-3 text-yellow-400 fill-current" />
-                              <span className="text-xs text-gray-600">{conversation.projectOwnerRating}</span>
+                              {!conversation.is_read && (
+                                <span className="bg-blue-600 text-white text-xs rounded-full px-2 py-1">New</span>
+                              )}
+                              <span className="text-xs text-gray-500 dark:text-gray-400">
+                                {formatTime(conversation.last_message_time)}
+                              </span>
                             </div>
                           </div>
-                          <div className="flex items-center space-x-1">
-                            {conversation.unread > 0 && (
-                              <span className="bg-primary-600 text-white text-xs rounded-full px-2 py-1">
-                                {conversation.unread}
-                              </span>
-                            )}
-                            <span className="text-xs text-gray-500">{formatTime(conversation.timestamp)}</span>
-                          </div>
+                          <p className="text-xs text-gray-600 dark:text-gray-400 mb-1 truncate">{conversation.project_title}</p>
+                          <p className="text-sm text-gray-700 dark:text-gray-300 truncate">{conversation.last_message}</p>
                         </div>
-                        <p className="text-xs text-gray-600 mb-1 truncate">{conversation.projectTitle}</p>
-                        <p className="text-sm text-gray-700 truncate">{conversation.lastMessage}</p>
                       </div>
                     </div>
-                  </div>
-                ))}
+                  ))
+                )}
               </div>
             </div>
           </div>
 
-          {/* Chat Area */}
-          <div className="lg:col-span-2">
-            <div className="card h-full flex flex-col">
+          <div className="flex-1">
+            <div className="bg-white dark:bg-gray-800 shadow rounded-xl h-full flex flex-col">
               {selectedConversation ? (
                 <>
-                  {/* Chat Header */}
-                  <div className="p-4 border-b border-gray-200">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-3">
-                        <img
-                          src={selectedConversation.projectOwnerImage || "/placeholder.svg"}
-                          alt={selectedConversation.projectOwnerName}
-                          className="w-10 h-10 rounded-full object-cover"
-                        />
-                        <div>
-                          <div className="flex items-center space-x-2">
-                            <h3 className="text-lg font-medium text-gray-900">
-                              {selectedConversation.projectOwnerName}
-                            </h3>
-                            <div className="flex items-center space-x-1">
-                              <Star className="w-4 h-4 text-yellow-400 fill-current" />
-                              <span className="text-sm text-gray-600">{selectedConversation.projectOwnerRating}</span>
-                            </div>
-                          </div>
-                          <p className="text-sm text-gray-600">{selectedConversation.projectTitle}</p>
-                        </div>
+                  <div className="p-4 border-b border-gray-200 dark:border-gray-700">
+                    <div className="flex items-center space-x-3">
+                      <img
+                        src={"/placeholder.svg"}
+                        alt={selectedConversation.other_user_full_name}
+                        className="w-10 h-10 rounded-full object-cover ring-2 ring-blue-500"
+                      />
+                      <div>
+                        <h3 className="text-lg font-medium text-gray-900 dark:text-white">
+                          {selectedConversation.other_user_full_name}
+                        </h3>
+                        <p className="text-sm text-gray-600 dark:text-gray-300">{selectedConversation.project_title}</p>
                       </div>
-                      <span
-                        className={`px-2 py-1 text-xs font-medium rounded-full ${
-                          selectedConversation.status === "active"
-                            ? "bg-green-100 text-green-800"
-                            : "bg-yellow-100 text-yellow-800"
-                        }`}
-                      >
-                        {selectedConversation.status}
-                      </span>
                     </div>
                   </div>
 
-                  {/* Messages */}
-                  <div className="flex-1 overflow-y-auto p-4 space-y-4">
-                    {messages.map((message) => (
-                      <div key={message.id} className={`flex ${message.isInvestor ? "justify-end" : "justify-start"}`}>
-                        <div
-                          className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
-                            message.isInvestor ? "bg-primary-600 text-white" : "bg-gray-100 text-gray-900"
-                          }`}
-                        >
-                          <p className="text-sm">{message.content}</p>
-                          <p className={`text-xs mt-1 ${message.isInvestor ? "text-primary-100" : "text-gray-500"}`}>
-                            {formatTime(message.timestamp)}
-                          </p>
+                  <div className="flex-1 overflow-y-auto p-4 space-y-3">
+                    {!messagesLoaded ? (
+                      <p className="text-center text-gray-500 dark:text-gray-400">Loading...</p>
+                    ) : messages.length === 0 ? (
+                      <p className="text-center text-gray-500 dark:text-gray-400">No messages yet</p>
+                    ) : (
+                      messages.map((message) => (
+                        <div key={message.id} className={`flex ${message.from_me ? "justify-end" : "justify-start"}`}>
+                          <div
+                            className={`max-w-xs md:max-w-md px-4 py-2 rounded-2xl shadow-sm ${
+                              message.from_me
+                                ? "bg-blue-600 text-white"
+                                : "bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                            }`}
+                          >
+                            <p className="text-sm">{message.message}</p>
+                            <p
+                              className={`text-xs mt-1 ${
+                                message.from_me
+                                  ? "text-blue-100"
+                                  : "text-gray-500 dark:text-gray-300"
+                              }`}
+                            >
+                              {formatTime(message.timestamp)}
+                            </p>
+                          </div>
                         </div>
-                      </div>
-                    ))}
+                      ))
+                    )}
+                    <div ref={messagesEndRef} />
                   </div>
 
-                  {/* Message Input */}
-                  <div className="p-4 border-t border-gray-200">
+                  <div className="p-4 border-t border-gray-200 dark:border-gray-700">
                     <div className="flex space-x-2">
                       <input
                         type="text"
                         placeholder={`${t("sendMessage")}...`}
-                        className="flex-1 input-field"
+                        className="flex-1 input-field dark:bg-gray-700 dark:text-white dark:placeholder-gray-400"
                         value={newMessage}
                         onChange={(e) => setNewMessage(e.target.value)}
                         onKeyPress={(e) => e.key === "Enter" && handleSendMessage()}
@@ -266,8 +249,8 @@ const InvestorMessages = () => {
                 <div className="flex-1 flex items-center justify-center">
                   <div className="text-center">
                     <MessageSquare className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                    <h3 className="text-lg font-medium text-gray-900 mb-2">Select a conversation</h3>
-                    <p className="text-gray-600">Choose a conversation from the list to start messaging</p>
+                    <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">Select a conversation</h3>
+                    <p className="text-gray-600 dark:text-gray-300">Choose a conversation from the list to start messaging</p>
                   </div>
                 </div>
               )}

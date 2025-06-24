@@ -61,7 +61,6 @@ const handleOfferAction = async (offerId, action) => {
 
   if (action === "reject") {
     try {
-      console.log("Rejecting offer", offerId);
       await axios.post(`http://127.0.0.1:8000/investor/offers/${offerId}/reject/`, {}, {
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -76,6 +75,35 @@ const handleOfferAction = async (offerId, action) => {
     } catch (error) {
       console.error("رفض العرض فشل:", error);
       toast.error("❌ Failed to reject the offer");
+    }
+  }
+
+  if (action === "accept") {
+    try {
+      const response = await axios.patch(
+        `http://127.0.0.1:8000/projectowner/offers/${offerId}/update-status/`,
+        { status: "Accepted" },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      toast.success("Offer accepted successfully");
+
+      // تحديث الحالة في الواجهة
+      setOffers((prev) =>
+        prev.map((offer) =>
+          offer.id === offerId
+            ? { ...offer, status: "accepted" }
+            : { ...offer, status: "rejected" }
+        )
+      );
+    } catch (error) {
+      console.error("قبول العرض فشل:", error);
+      toast.error("❌ Failed to accept the offer");
     }
   }
 

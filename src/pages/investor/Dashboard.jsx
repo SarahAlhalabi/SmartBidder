@@ -357,82 +357,7 @@ const InvestorDashboard = () => {
             </div>
 
             {/* Trending Projects */}
-            <div className="xl:col-span-1">
-              <div className="card">
-                <div className="flex items-center justify-between mb-6">
-                  <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100">Trending Projects</h3>
-                  <Link
-                    to="/investor/browse"
-                    className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium flex items-center"
-                  >
-                    Browse All <ArrowUpRight className="w-4 h-4 ml-1" />
-                  </Link>
-                </div>
-                <div className="space-y-4">
-                  {trendingProjects.map((project) => (
-                    <div
-                      key={project.id}
-                      className="border border-gray-200 dark:border-gray-700 rounded-xl p-4 hover:shadow-md transition-all duration-300 hover:border-blue-300 dark:hover:border-blue-600"
-                    >
-                      <div className="flex items-start justify-between mb-3">
-                        <div className="flex-1">
-                          <h4 className="font-semibold text-gray-900 dark:text-gray-100 mb-1">{project.title}</h4>
-                          <p className="text-sm text-gray-600 dark:text-gray-400">{project.category}</p>
-                        </div>
-                        <div className="flex items-center space-x-1 bg-yellow-50 dark:bg-yellow-900/20 px-2 py-1 rounded-lg">
-                          <Star className="w-4 h-4 text-yellow-500 fill-current" />
-                          <span className="text-sm font-medium text-yellow-700 dark:text-yellow-400">
-                            {project.rating}
-                          </span>
-                        </div>
-                      </div>
-
-                      <div className="space-y-3">
-                        <div>
-                          <div className="flex justify-between text-sm mb-1">
-                            <span className="text-gray-600 dark:text-gray-400">Funding Progress</span>
-                            <span className="font-medium text-gray-900 dark:text-gray-100">
-                              {project.fundingProgress}%
-                            </span>
-                          </div>
-                          <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-                            <div
-                              className="bg-gradient-to-r from-blue-500 to-indigo-600 h-2 rounded-full transition-all duration-500"
-                              style={{ width: `${project.fundingProgress}%` }}
-                            ></div>
-                          </div>
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-3 text-sm">
-                          <div>
-                            <p className="text-gray-500 dark:text-gray-400">Min. Investment</p>
-                            <p className="font-semibold text-gray-900 dark:text-gray-100">
-                              ${project.minInvestment.toLocaleString()}
-                            </p>
-                          </div>
-                          <div>
-                            <p className="text-gray-500 dark:text-gray-400">Investors</p>
-                            <p className="font-semibold text-gray-900 dark:text-gray-100">{project.investors}</p>
-                          </div>
-                        </div>
-                      </div>
-
-                      <Link
-                        to={`/investor/project/${project.id}`}
-                        className="btn-primary w-full mt-4 text-sm py-2 flex items-center justify-center space-x-2"
-                      >
-                        <span>{t("viewDetails")}</span>
-                        <ArrowUpRight className="w-4 h-4" />
-                      </Link>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Notifications Preview */}
-          <div className="mt-8">
+           <div className="mt-8">
             <div className="card bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border-blue-200 dark:border-blue-800">
               <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center space-x-3">
@@ -479,6 +404,10 @@ const InvestorDashboard = () => {
               </div>
             </div>
           </div>
+          </div>
+
+          {/* Notifications Preview */}
+          
         </div>
       </div>
     </div>

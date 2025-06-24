@@ -13,7 +13,8 @@ const ProjectsList = () => {
   const [statusFilter, setStatusFilter] = useState("all")
   const [projects, setProjects] = useState([])
   const [editingProject, setEditingProject] = useState(null)
-
+const [viewingProject, setViewingProject] = useState(false) // هل النافذة المفتوحة أم لا؟
+const [projectDetails, setProjectDetails] = useState(null)  // البيانات القادمة من API
 const [formData, setFormData] = useState({
   title: "",
   description: "",
@@ -50,6 +51,19 @@ const [formData, setFormData] = useState({
 
     fetchProjects()
   }, [])
+const fetchProjectDetails = async (projectId) => {
+  try {
+    const token = localStorage.getItem("accessToken")
+    const res = await axios.get(`http://127.0.0.1:8000/projectowner/my-projectss/${projectId}/`, {
+      headers: { Authorization: `Bearer ${token}` }
+    })
+    setProjectDetails(res.data)
+    setViewingProject(true)
+  } catch (err) {
+    console.error("Error fetching project details", err)
+    alert("Failed to load project details")
+  }
+}
 
   const handleEdit = async () => {
     try {
@@ -159,10 +173,14 @@ const [formData, setFormData] = useState({
               </div>
 
               <div className="flex space-x-2 mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
-                <button className="flex-1 btn-secondary text-sm py-2 inline-flex items-center justify-center">
-                  <Eye className="w-4 h-4 mr-1" />
-                  View
-                </button>
+               <button
+  onClick={() => fetchProjectDetails(project.id)}
+  className="flex-1 btn-secondary text-sm py-2 inline-flex items-center justify-center"
+>
+  <Eye className="w-4 h-4 mr-1" />
+  View
+</button>
+
                 <button
               onClick={() => {
   setEditingProject(project)
@@ -278,6 +296,75 @@ const [formData, setFormData] = useState({
           </div>
         </div>
       )}
+ {viewingProject && projectDetails && (
+ <div className="fixed inset-0 z-50 bg-black bg-opacity-50 flex items-center justify-center p-4">
+  <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-y-auto p-6">
+    {/* Header */}
+    <div className="flex justify-between items-center mb-6">
+      <h2 className="text-2xl font-bold text-blue-600 dark:text-blue-400 flex items-center gap-2">
+        📘 Project Details
+      </h2>
+      <button
+        onClick={() => setViewingProject(false)}
+        className="text-gray-400 hover:text-gray-700 dark:hover:text-white text-lg"
+      >
+        ✕
+      </button>
+    </div>
+
+    {/* General Info & Summary */}
+    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+      <div className="bg-blue-50 dark:bg-blue-900/20 rounded-xl p-5 shadow-sm">
+        <h3 className="text-lg font-semibold text-blue-700 dark:text-blue-300 mb-4">General Info</h3>
+        <ul className="space-y-3 text-gray-800 dark:text-gray-200 text-sm">
+          <li><span className="font-medium">Title:</span> {projectDetails.title}</li>
+          <li><span className="font-medium">Category:</span> {projectDetails.category}</li>
+          <li><span className="font-medium">Status:</span> {projectDetails.status}</li>
+          <li><span className="font-medium">Readiness:</span> {projectDetails.readiness_level}</li>
+        </ul>
+      </div>
+
+      <div className="bg-purple-50 dark:bg-purple-900/20 rounded-xl p-5 shadow-sm">
+        <h3 className="text-lg font-semibold text-purple-700 dark:text-purple-300 mb-4">Summary</h3>
+        <ul className="space-y-3 text-gray-800 dark:text-gray-200 text-sm">
+          <li><span className="font-medium">Idea:</span> {projectDetails.idea_summary}</li>
+          <li><span className="font-medium">Problem:</span> {projectDetails.problem_solving}</li>
+          <li><span className="font-medium">Created:</span> {new Date(projectDetails.created_at).toLocaleDateString()}</li>
+          <li><span className="font-medium">Updated:</span> {new Date(projectDetails.updated_at).toLocaleDateString()}</li>
+        </ul>
+      </div>
+    </div>
+
+    {/* Feasibility Study */}
+    <div className="bg-green-50 dark:bg-green-900/20 rounded-xl p-5 shadow-sm mb-6">
+      <h3 className="text-lg font-semibold text-green-700 dark:text-green-300 mb-4 flex items-center gap-2">
+        📊 Feasibility Study
+      </h3>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 text-sm text-gray-800 dark:text-gray-200">
+        {Object.entries(projectDetails.feasibility_study || {}).map(([key, value]) => (
+          <div key={key}>
+            <span className="block text-gray-500 dark:text-gray-400 capitalize mb-1">{key.replace(/_/g, " ")}</span>
+            <span className="font-semibold text-blue-700 dark:text-blue-400">{value}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+
+    {/* Footer */}
+    <div className="flex justify-end">
+      <button
+        onClick={() => setViewingProject(false)}
+        className="bg-blue-600 hover:bg-blue-700 text-white font-medium px-6 py-2 rounded-xl"
+      >
+        Close
+      </button>
+    </div>
+  </div>
+</div>
+
+)}
+
+
     </div>
   )
 }

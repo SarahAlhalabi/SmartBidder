@@ -1,4 +1,5 @@
 "use client"
+
 import { useState } from "react"
 import { Link } from "react-router-dom"
 import { Trophy, Star, TrendingUp, DollarSign, Award, Medal, Target } from "lucide-react"
@@ -10,7 +11,6 @@ const ProjectLeaderboard = () => {
   const [timeFilter, setTimeFilter] = useState("all")
   const [categoryFilter, setCategoryFilter] = useState("all")
 
-  // Mock leaderboard data
   const projects = [
     {
       id: 1,
@@ -133,38 +133,39 @@ const ProjectLeaderboard = () => {
   const getRankColor = (rank) => {
     switch (rank) {
       case 1:
-        return "text-yellow-600 bg-yellow-50 border-yellow-200"
+        return "text-yellow-600 bg-yellow-50 dark:bg-yellow-900 border-yellow-200 dark:text-yellow-300"
       case 2:
-        return "text-gray-600 bg-gray-50 border-gray-200"
+        return "text-gray-600 bg-gray-50 dark:bg-gray-900 border-gray-200 dark:text-gray-300"
       case 3:
-        return "text-orange-600 bg-orange-50 border-orange-200"
+        return "text-orange-600 bg-orange-50 dark:bg-orange-900 border-orange-200 dark:text-orange-300"
       default:
-        return "text-gray-600 bg-gray-50 border-gray-200"
+        return "text-gray-600 bg-gray-50 dark:bg-gray-900 border-gray-200 dark:text-gray-300"
     }
   }
 
   const getRiskColor = (risk) => {
     switch (risk) {
       case "low":
-        return "bg-green-100 text-green-800"
+        return "bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-300"
       case "medium":
-        return "bg-yellow-100 text-yellow-800"
+        return "bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-300"
       case "high":
-        return "bg-red-100 text-red-800"
+        return "bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-300"
       default:
-        return "bg-gray-100 text-gray-800"
+        return "bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200"
     }
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-gray-100">
       <Header />
 
       <div className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">{t("topProjects")}</h1>
-          <p className="text-gray-600 mt-2">Discover the highest-rated and most successful projects on our platform</p>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">{t("topProjects")}</h1>
+          <p className="text-gray-600 dark:text-gray-300 mt-2">Discover the highest-rated and most successful projects on our platform</p>
         </div>
+
 
         {/* Filters */}
         <div className="card mb-6">
@@ -241,9 +242,13 @@ const ProjectLeaderboard = () => {
 
               <div className="flex flex-wrap gap-1 justify-center mb-4">
                 {project.tags.slice(0, 2).map((tag) => (
-                  <span key={tag} className="px-2 py-1 bg-primary-100 text-primary-800 text-xs rounded-full">
-                    {tag}
-                  </span>
+                 <span
+  key={tag}
+  className="px-2 py-1 text-xs rounded-full bg-gray-200 text-gray-800 dark:bg-gray-700 dark:text-gray-100"
+>
+  {tag}
+</span>
+
                 ))}
               </div>
 
@@ -324,9 +329,13 @@ const ProjectLeaderboard = () => {
                     <div className="flex items-center justify-between mt-3">
                       <div className="flex flex-wrap gap-1">
                         {project.tags.map((tag) => (
-                          <span key={tag} className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded-full">
-                            {tag}
-                          </span>
+                         <span
+  key={tag}
+  className="px-2 py-1 text-xs rounded-full bg-neutral-200 text-neutral-800 dark:bg-neutral-700 dark:text-neutral-100"
+>
+  {tag}
+</span>
+
                         ))}
                       </div>
                       <Link to={`/investor/project/${project.id}`} className="btn-primary text-sm px-4 py-2">

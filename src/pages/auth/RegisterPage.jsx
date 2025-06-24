@@ -23,18 +23,20 @@ const { isDarkMode, toggleTheme } = useTheme()
 const logoSrc = isDarkMode ? "/logo-dark2.png" : "/logo1.png"
 
   const [showPassword, setShowPassword] = useState(false)
-  const [formData, setFormData] = useState({
-    role: "entrepreneur",
-    fullName: "",
-    username: "",
-    email: "",
-    phone: "",
-    password: "",
-    bio: "",
-    profilePicture: null,
-    idCardPicture: null,
-    termsAccepted: false,
-  })
+const [formData, setFormData] = useState({
+  role: "entrepreneur",
+  fullName: "",
+  username: "",
+  email: "",
+  phone: "",
+  password: "",
+  bio: "",
+  profilePicture: null,
+  idCardPicture: null,
+  termsAccepted: false,
+  company_name: "",              // 👈 أضف هذا
+  commercial_register: "",       // 👈 وأضف هذا أيضًا
+})
 
   const [profilePreview, setProfilePreview] = useState(null)
   const [idCardPreview, setIdCardPreview] = useState(null)
@@ -86,16 +88,32 @@ const handleSubmit = async (e) => {
   form.append("full_name", formData.fullName)
   form.append("terms_agreed", formData.termsAccepted ? "true" : "false")
 
+  // صور
   if (formData.profilePicture) {
     form.append("profile_picture", formData.profilePicture)
   }
-
   if (formData.idCardPicture) {
     form.append("id_card_picture", formData.idCardPicture)
   }
 
+  // إذا كان المستثمر: أضف الحقول الخاصة
+  if (formData.role === "investor") {
+    if (formData.company_name) {
+      form.append("company_name", formData.company_name)
+    }
+    if (formData.commercial_register) {
+      form.append("commercial_register", formData.commercial_register)
+    }
+  }
+
+  // تحديد الرابط المناسب حسب الدور
+  const endpoint =
+    formData.role === "investor"
+      ? "http://127.0.0.1:8000/accounts/register/investor/"
+      : "http://127.0.0.1:8000/accounts/register/project-owner/"
+
   try {
-    const response = await fetch("http://127.0.0.1:8000/accounts/register/project-owner", {
+    const response = await fetch(endpoint, {
       method: "POST",
       body: form,
     })
@@ -104,7 +122,7 @@ const handleSubmit = async (e) => {
 
     if (response.ok) {
       alert("Account created successfully!")
-        navigate("/login", { replace: true })
+      navigate("/login", { replace: true })
     } else {
       console.error("Registration error:", data)
       alert("Registration failed. Please check your input.")
@@ -114,6 +132,7 @@ const handleSubmit = async (e) => {
     alert("Something went wrong. Please try again later.")
   }
 }
+
 
   const togglePasswordVisibility = () => {
     setShowPassword(!showPassword)
@@ -371,6 +390,39 @@ const handleSubmit = async (e) => {
                 />
               </div>
             </div>
+{formData.role === "investor" && (
+  <>
+    <div>
+      <label htmlFor="company_name" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+        {direction === "rtl" ? "اسم الشركة" : "Company Name"}
+      </label>
+      <input
+        type="text"
+        id="company_name"
+        name="company_name"
+        value={formData.company_name || ""}
+        onChange={handleChange}
+        className="appearance-none block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-emerald-500 focus:border-emerald-500 sm:text-sm bg-white dark:bg-slate-700 text-gray-900 dark:text-white"
+        placeholder={direction === "rtl" ? "أدخل اسم الشركة" : "Enter company name"}
+      />
+    </div>
+
+    <div className="mt-4">
+      <label htmlFor="commercial_register" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+        {direction === "rtl" ? "السجل التجاري" : "Commercial Register"}
+      </label>
+      <input
+        type="text"
+        id="commercial_register"
+        name="commercial_register"
+        value={formData.commercial_register || ""}
+        onChange={handleChange}
+        className="appearance-none block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-emerald-500 focus:border-emerald-500 sm:text-sm bg-white dark:bg-slate-700 text-gray-900 dark:text-white"
+        placeholder={direction === "rtl" ? "أدخل رقم السجل التجاري" : "Enter commercial register"}
+      />
+    </div>
+  </>
+)}
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Profile Picture Upload */}

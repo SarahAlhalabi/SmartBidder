@@ -1,102 +1,71 @@
 "use client"
-import { useState } from "react"
+
 import { Bell, Check, X, Star, TrendingUp, MessageSquare, DollarSign } from "lucide-react"
 import { useLanguage } from "../../contexts/LanguageContext"
 import Header from "../../components/common/Header"
+import { useState, useEffect } from "react"
+import axios from "axios"
 
 const Notifications = () => {
   const { t, isRTL } = useLanguage()
   const [filter, setFilter] = useState("all")
+ const [notifications, setNotifications] = useState([])
 
-  // Mock notifications data
-  const [notifications, setNotifications] = useState([
-    {
-      id: 1,
-      type: "project_match",
-      title: t("newProjectAlert"),
-      message: "New project 'Blockchain Analytics Platform' matches your investment interests in Technology",
-      timestamp: "2024-01-20T10:30:00Z",
-      read: false,
-      icon: TrendingUp,
-      color: "text-blue-600",
-      bgColor: "bg-blue-100",
-      projectId: 5,
-    },
-    {
-      id: 2,
-      type: "offer_accepted",
-      title: t("offerAcceptedNotification"),
-      message: "Your investment offer of $25,000 for 'AI-Powered E-commerce Platform' has been accepted",
-      timestamp: "2024-01-19T15:45:00Z",
-      read: false,
-      icon: Check,
-      color: "text-green-600",
-      bgColor: "bg-green-100",
-      projectId: 1,
-    },
-    {
-      id: 3,
-      type: "negotiation",
-      title: t("negotiationStarted"),
-      message: "Sarah Johnson wants to negotiate terms for your investment offer",
-      timestamp: "2024-01-19T09:15:00Z",
-      read: true,
-      icon: MessageSquare,
-      color: "text-purple-600",
-      bgColor: "bg-purple-100",
-      projectId: 1,
-    },
-    {
-      id: 4,
-      type: "project_update",
-      title: "Project Milestone Completed",
-      message: "'Sustainable Energy Solution' has completed their MVP development milestone",
-      timestamp: "2024-01-18T14:20:00Z",
-      read: true,
-      icon: Star,
-      color: "text-yellow-600",
-      bgColor: "bg-yellow-100",
-      projectId: 2,
-    },
-    {
-      id: 5,
-      type: "offer_rejected",
-      title: t("offerRejectedNotification"),
-      message: "Your offer for 'Healthcare Mobile App' was not accepted. Consider revising your terms.",
-      timestamp: "2024-01-17T11:30:00Z",
-      read: true,
-      icon: X,
-      color: "text-red-600",
-      bgColor: "bg-red-100",
-      projectId: 3,
-    },
-    {
-      id: 6,
-      type: "project_match",
-      title: t("matchingProjects"),
-      message: "3 new projects in Healthcare category match your investment criteria",
-      timestamp: "2024-01-16T08:45:00Z",
-      read: true,
-      icon: TrendingUp,
-      color: "text-blue-600",
-      bgColor: "bg-blue-100",
-      projectId: null,
-    },
-    {
-      id: 7,
-      type: "funding_milestone",
-      title: "Funding Milestone Reached",
-      message: "'EdTech Learning Platform' has reached 75% of their funding goal",
-      timestamp: "2024-01-15T16:20:00Z",
-      read: true,
-      icon: DollarSign,
-      color: "text-green-600",
-      bgColor: "bg-green-100",
-      projectId: 4,
-    },
-  ])
+useEffect(() => {
+  const fetchNotifications = async () => {
+    try {
+      const token = localStorage.getItem("accessToken")
+      const res = await axios.get("http://127.0.0.1:8000/accounts/notifications/", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
 
-  const filteredNotifications = notifications.filter((notification) => {
+      // نهيئ البيانات القادمة لتتناسب مع العرض
+      const enrichedData = res.data.map((n) => {
+        let icon = Bell
+        let color = "text-blue-600"
+        let bgColor = "bg-blue-100"
+
+        // تخصيص الأيقونات حسب نوع الرسالة
+        if (n.message.includes("accepted")) {
+          icon = Check
+          color = "text-green-600"
+          bgColor = "bg-green-100"
+        } else if (n.message.includes("rejected")) {
+          icon = X
+          color = "text-red-600"
+          bgColor = "bg-red-100"
+        } else if (n.message.toLowerCase().includes("negotiate")) {
+          icon = MessageSquare
+          color = "text-purple-600"
+          bgColor = "bg-purple-100"
+        }
+
+        return {
+          id: n.id,
+          type: "default",
+          title: t("notification"),
+          message: n.message,
+          timestamp: n.created_at,
+          read: n.is_read,
+          icon,
+          color,
+          bgColor,
+          projectId: null,
+        }
+      })
+
+      setNotifications(enrichedData)
+    } catch (err) {
+      console.error("Failed to fetch notifications", err)
+    }
+  }
+
+  fetchNotifications()
+}, [t])
+
+ const filteredNotifications = notifications.filter((notification) => {
     if (filter === "unread") return !notification.read
     if (filter === "read") return notification.read
     return true
@@ -104,15 +73,60 @@ const Notifications = () => {
 
   const unreadCount = notifications.filter((n) => !n.read).length
 
-  const markAsRead = (id) => {
-    setNotifications(
-      notifications.map((notification) => (notification.id === id ? { ...notification, read: true } : notification)),
-    )
-  }
+const markAsRead = async (id) => {
+  try {
+    const token = localStorage.getItem("accessToken")
+    await axios.post(`http://127.0.0.1:8000/accounts/notifications/${id}/mark-read/`, {}, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
 
-  const markAllAsRead = () => {
-    setNotifications(notifications.map((notification) => ({ ...notification, read: true })))
+    // بعد نجاح الطلب، حدّث الواجهة
+    setNotifications((prev) =>
+      prev.map((n) => (n.id === id ? { ...n, read: true } : n))
+    )
+  } catch (err) {
+    console.error("Failed to mark notification as read", err)
   }
+}
+
+
+ const markAllAsRead = async () => {
+  try {
+    const token = localStorage.getItem("accessToken")
+    await axios.post("http://127.0.0.1:8000/accounts/notifications/mark-all-read/", {}, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
+
+    // بعد نجاح الطلب، عدّل الواجهة
+    setNotifications((prev) =>
+      prev.map((n) => ({ ...n, read: true }))
+    )
+  } catch (err) {
+    console.error("Failed to mark all as read", err)
+  }
+}
+
+const deleteNotification = async (id) => {
+  const confirmDelete = window.confirm("Are you sure you want to delete this notification?")
+  if (!confirmDelete) return
+
+  try {
+    const token = localStorage.getItem("accessToken")
+    await axios.delete(`http://127.0.0.1:8000/accounts/notifications/${id}/delete/`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
+
+    setNotifications((prev) => prev.filter((n) => n.id !== id))
+  } catch (err) {
+    console.error("Failed to delete notification", err)
+  }
+}
 
   const clearAll = () => {
     setNotifications([])
@@ -122,53 +136,48 @@ const Notifications = () => {
     const now = new Date()
     const time = new Date(timestamp)
     const diffInHours = Math.floor((now - time) / (1000 * 60 * 60))
-
     if (diffInHours < 1) return "Just now"
     if (diffInHours < 24) return `${diffInHours}h ago`
     return `${Math.floor(diffInHours / 24)}d ago`
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <Header />
 
       <div className="max-w-4xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">{t("notifications")}</h1>
-          <p className="text-gray-600 mt-2">Stay updated with your investment activities and opportunities</p>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">{t("notifications")}</h1>
+          <p className="text-gray-600 dark:text-gray-300 mt-2">Stay updated with your investment activities and opportunities</p>
         </div>
 
-        {/* Notification Stats */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-          <div className="card text-center">
+          <div className="card text-center bg-white dark:bg-gray-800">
             <Bell className="w-8 h-8 text-blue-600 mx-auto mb-2" />
-            <div className="text-2xl font-bold text-gray-900">{notifications.length}</div>
-            <div className="text-sm text-gray-600">Total Notifications</div>
+            <div className="text-2xl font-bold text-gray-900 dark:text-white">{notifications.length}</div>
+            <div className="text-sm text-gray-600 dark:text-gray-300">Total Notifications</div>
           </div>
-          <div className="card text-center">
-            <div className="w-8 h-8 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-2">
-              <span className="text-red-600 font-bold text-sm">{unreadCount}</span>
+          <div className="card text-center bg-white dark:bg-gray-800">
+            <div className="w-8 h-8 bg-red-100 dark:bg-red-900 rounded-full flex items-center justify-center mx-auto mb-2">
+              <span className="text-red-600 dark:text-red-300 font-bold text-sm">{unreadCount}</span>
             </div>
-            <div className="text-2xl font-bold text-gray-900">{unreadCount}</div>
-            <div className="text-sm text-gray-600">Unread</div>
+            <div className="text-2xl font-bold text-gray-900 dark:text-white">{unreadCount}</div>
+            <div className="text-sm text-gray-600 dark:text-gray-300">Unread</div>
           </div>
-          <div className="card text-center">
+          <div className="card text-center bg-white dark:bg-gray-800">
             <Check className="w-8 h-8 text-green-600 mx-auto mb-2" />
-            <div className="text-2xl font-bold text-gray-900">{notifications.length - unreadCount}</div>
-            <div className="text-sm text-gray-600">Read</div>
+            <div className="text-2xl font-bold text-gray-900 dark:text-white">{notifications.length - unreadCount}</div>
+            <div className="text-sm text-gray-600 dark:text-gray-300">Read</div>
           </div>
         </div>
 
-        {/* Controls */}
-        <div className="card mb-6">
+        <div className="card bg-white dark:bg-gray-800 mb-6">
           <div className="flex items-center justify-between">
-            <div className="flex space-x-4">
-              <select className="input-field w-48" value={filter} onChange={(e) => setFilter(e.target.value)}>
-                <option value="all">All Notifications</option>
-                <option value="unread">Unread Only</option>
-                <option value="read">Read Only</option>
-              </select>
-            </div>
+            <select className="input-field w-48 dark:bg-gray-700 dark:text-white" value={filter} onChange={(e) => setFilter(e.target.value)}>
+              <option value="all">All Notifications</option>
+              <option value="unread">Unread Only</option>
+              <option value="read">Read Only</option>
+            </select>
             <div className="flex space-x-2">
               {unreadCount > 0 && (
                 <button onClick={markAllAsRead} className="btn-secondary text-sm">
@@ -182,53 +191,35 @@ const Notifications = () => {
           </div>
         </div>
 
-        {/* Notifications List */}
         <div className="space-y-4">
-          {filteredNotifications.map((notification) => (
-            <div
-              key={notification.id}
-              className={`card hover:shadow-md transition-shadow ${
-                !notification.read ? "border-l-4 border-l-primary-500 bg-primary-50" : ""
-              }`}
-            >
+          {filteredNotifications.map((n) => (
+            <div key={n.id} className={`card hover:shadow-md transition-shadow bg-white dark:bg-gray-800 ${!n.read ? "border-l-4 border-l-primary-500 bg-primary-50 dark:bg-gray-700" : ""}`}>
               <div className="flex items-start space-x-4">
-                <div className={`p-2 ${notification.bgColor} rounded-lg`}>
-                  <notification.icon className={`w-5 h-5 ${notification.color}`} />
+                <div className={`p-2 ${n.bgColor} dark:bg-opacity-20 rounded-lg`}>
+                  <n.icon className={`w-5 h-5 ${n.color}`} />
                 </div>
-
                 <div className="flex-1">
                   <div className="flex items-start justify-between mb-2">
                     <div>
-                      <h3 className={`font-semibold ${!notification.read ? "text-gray-900" : "text-gray-700"}`}>
-                        {notification.title}
-                      </h3>
-                      <p className={`text-sm ${!notification.read ? "text-gray-800" : "text-gray-600"}`}>
-                        {notification.message}
-                      </p>
+                      <h3 className={`font-semibold ${!n.read ? "text-gray-900 dark:text-white" : "text-gray-700 dark:text-gray-300"}`}>{n.title}</h3>
+                      <p className={`text-sm ${!n.read ? "text-gray-800 dark:text-gray-200" : "text-gray-600 dark:text-gray-400"}`}>{n.message}</p>
                     </div>
                     <div className="flex items-center space-x-2">
-                      <span className="text-xs text-gray-500">{formatTimeAgo(notification.timestamp)}</span>
-                      {!notification.read && <div className="w-2 h-2 bg-primary-600 rounded-full"></div>}
+                      <span className="text-xs text-gray-500 dark:text-gray-400">{formatTimeAgo(n.timestamp)}</span>
+                      {!n.read && <div className="w-2 h-2 bg-primary-600 rounded-full"></div>}
                     </div>
                   </div>
-
                   <div className="flex items-center space-x-2">
-                    {!notification.read && (
-                      <button
-                        onClick={() => markAsRead(notification.id)}
-                        className="text-primary-600 hover:text-primary-700 text-sm font-medium"
-                      >
-                        {t("markAsRead")}
-                      </button>
-                    )}
-                    {notification.projectId && (
-                      <button className="text-primary-600 hover:text-primary-700 text-sm font-medium">
-                        View Project
-                      </button>
-                    )}
-                    {notification.type === "negotiation" && (
-                      <button className="text-primary-600 hover:text-primary-700 text-sm font-medium">Open Chat</button>
-                    )}
+                    {!n.read && <button onClick={() => markAsRead(n.id)} className="text-primary-600 hover:text-primary-700 text-sm font-medium">{t("markAsRead")}</button>}
+                    {n.projectId && <button className="text-primary-600 hover:text-primary-700 text-sm font-medium">View Project</button>}
+                    {n.type === "negotiation" && <button className="text-primary-600 hover:text-primary-700 text-sm font-medium">Open Chat</button>}
+                    <button
+  onClick={() => deleteNotification(n.id)}
+  className="text-red-600 hover:text-red-800 text-sm font-medium"
+>
+  Delete
+</button>
+
                   </div>
                 </div>
               </div>
@@ -238,30 +229,20 @@ const Notifications = () => {
 
         {filteredNotifications.length === 0 && (
           <div className="text-center py-12">
-            <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <div className="w-24 h-24 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center mx-auto mb-4">
               <Bell className="w-8 h-8 text-gray-400" />
             </div>
-            <h3 className="text-lg font-medium text-gray-900 mb-2">{t("noNotifications")}</h3>
-            <p className="text-gray-600">
-              {filter === "unread"
-                ? "All notifications have been read."
-                : filter === "read"
-                  ? "No read notifications found."
-                  : "You're all caught up! No notifications to show."}
-            </p>
+            <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">{t("noNotifications")}</h3>
+            <p className="text-gray-600 dark:text-gray-300">You're all caught up! No notifications to show.</p>
           </div>
         )}
 
-        {/* Notification Preferences */}
-        <div className="card mt-8 bg-blue-50 border-blue-200">
+        <div className="card mt-8 bg-blue-50 dark:bg-gray-800 border-blue-200 dark:border-gray-700">
           <div className="flex items-start space-x-3">
             <Bell className="w-6 h-6 text-blue-600 mt-1" />
             <div>
-              <h3 className="text-lg font-medium text-blue-900 mb-2">Notification Preferences</h3>
-              <p className="text-blue-800 text-sm mb-4">
-                Customize your notification settings to receive updates about projects that match your investment
-                interests.
-              </p>
+              <h3 className="text-lg font-medium text-blue-900 dark:text-blue-300 mb-2">Notification Preferences</h3>
+              <p className="text-blue-800 dark:text-blue-200 text-sm mb-4">Customize your notification settings to receive updates about projects.</p>
               <button className="btn-primary text-sm">Manage Preferences</button>
             </div>
           </div>
