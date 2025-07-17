@@ -1,7 +1,7 @@
 "use client"
 import { useState, useEffect } from "react"
 import { Link } from "react-router-dom"
-import { Search, Filter } from "lucide-react"
+import { Search, Filter, FileSearch } from "lucide-react"
 import { useLanguage } from "../../contexts/LanguageContext"
 import Header from "../../components/common/Header"
 
@@ -48,18 +48,19 @@ const BrowseProjects = () => {
     fetchProjects()
   }, [filters])
 
-  const categories = [
-    { value: "", label: "All Categories" },
-    { value: "technology", label: t("technology") },
-    { value: "healthcare", label: t("healthcare") },
-    { value: "finance", label: t("finance") },
-    { value: "education", label: t("education") },
-    { value: "retail", label: t("retail") },
-  ]
+const categories = [
+  { value: "", label: "All Categories" },
+  { value: "medical", label: "Medical" },
+  { value: "general_trade", label: "General Trade" },
+  { value: "construction", label: "Construction" },
+  { value: "business", label: "Business" },
+  { value: "other", label: "Other" },
+]
 
-  const handleFilterChange = (key, value) => {
-    setFilters({ ...filters, [key]: value })
-  }
+const handleFilterChange = (key, value) => {
+  setLoading(true); // 🔁 أضف هذا السطر
+  setFilters({ ...filters, [key]: value });
+}
 
   const getRiskColor = (risk) => {
     switch (risk) {
@@ -71,13 +72,26 @@ const BrowseProjects = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-800 dark:text-gray-100">
+    <div className="min-h-screen overflow-x-hidden bg-gray-50 dark:bg-gray-900 text-gray-800 dark:text-gray-100">
       <Header />
       <div className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">{t("browseProjects")}</h1>
-          <p className="text-gray-600 dark:text-gray-300 mt-2">Discover investment opportunities that match your interests</p>
-        </div>
+          <div className="w-full max-w-6xl -mt-10 px-2 py-6 md:py-8 flex items-center gap-4 bg-transparent">
+  {/* أيقونة العنوان */}
+  <div className="p-3 rounded-full bg-gradient-to-br from-blue-500 to-indigo-500 text-white shadow-md">
+    <FileSearch className="h-6 w-6" />
+  </div>
+
+  {/* نص العنوان والوصف */}
+  <div>
+    <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-white">
+      Browse <span className="text-blue-600">Projects</span>
+    </h1>
+    <div className="h-1 w-16 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full mt-2" />
+  </div>
+
+</div>
+  <p className="text-m text-gray-500 -mt-6 mb-6 px-16">Discover investment opportunities that match your interests</p>
+        
 
         <div className="card mb-6 bg-white dark:bg-gray-800 p-4 rounded-xl shadow">
           <div className="flex flex-col space-y-4">
@@ -143,8 +157,9 @@ const BrowseProjects = () => {
                   <img src={project.image || "/placeholder.svg"} alt={project.title} className="w-full h-48 object-cover rounded-lg" />
                 </div>
                 <div className="space-y-4">
+                  <h2 className="text-lg font-bold text-gray-900 dark:text-white line-clamp-1">{project.title}</h2>
+
                   <div>
-                    <h3 className="text-lg font-semibold line-clamp-1">{project.title}</h3>
                     <p className="text-gray-600 dark:text-gray-300 text-sm line-clamp-2">{project.description}</p>
                   </div>
                   <div className="space-y-2">
@@ -153,7 +168,15 @@ const BrowseProjects = () => {
                       <span className="font-medium">${project.feasibility_study?.current_revenue?.toLocaleString()} / ${project.feasibility_study?.funding_required?.toLocaleString()}</span>
                     </div>
                     <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-                      <div className="bg-primary-600 h-2 rounded-full" style={{ width: `${(project.feasibility_study?.current_revenue / project.feasibility_study?.funding_required) * 100}%` }}></div>
+                      <div className="bg-primary-600 h-2 rounded-full" style={{
+      width: `${Math.min(
+        (project.feasibility_study?.current_revenue /
+          project.feasibility_study?.funding_required) *
+          100,
+        100
+      )}%`,
+    }}
+  ></div>
                     </div>
                   </div>
                   <div className="grid grid-cols-2 gap-4 text-sm">
@@ -166,10 +189,12 @@ const BrowseProjects = () => {
                       <div className="font-medium text-green-600">{project.feasibility_study?.expected_profit_margin}</div>
                     </div>
                   </div>
-                  <div className="flex items-center justify-between pt-4 border-t border-gray-200 dark:border-gray-700">
-                    <Link to={`/investor/project/${project.id}`} className="btn-primary text-sm px-4 py-2">
+                  <div className=" justify-between pt-4 border-t border-gray-200 dark:border-gray-700">
+                    <div className="text-center mt-4">
+                    <Link to={`/investor/project/${project.id}`} className="btn-primary text-sm px-8 py-4">
                       {t("viewDetails")}
                     </Link>
+                  </div>
                   </div>
                 </div>
               </div>

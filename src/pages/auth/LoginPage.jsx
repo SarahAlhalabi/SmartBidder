@@ -25,76 +25,64 @@ const LoginPage = () => {
     setFormData((prev) => ({ ...prev, [name]: value }))
   }
 
-  const handleSubmit = async (e) => {
-    e.preventDefault()
-    setIsLoading(true)
-    const result = await login(formData.username, formData.password)
-    if (result.success) {
-      const role = result.user.role
-      switch (role) {
-        case "admin":
-          navigate("/admin/dashboard", { replace: true })
-          break
-        case "project-owner":
-          navigate("/project-owner/dashboard", { replace: true })
-          break
-        default:
-          navigate("/investor/dashboard", { replace: true })
-      }
-    } else {
-      alert(result.error)
+ const handleSubmit = async (e) => {
+  e.preventDefault()
+  setIsLoading(true)
+  const result = await login(formData.username, formData.password)
+  if (result.success) {
+    // ✅ تخزين التوكن في localStorage
+    localStorage.setItem("token", result.token)
+
+    const role = result.user.role
+    switch (role) {
+      case "admin":
+        navigate("/admin/dashboard", { replace: true })
+        break
+      case "project-owner":
+        navigate("/project-owner/dashboard", { replace: true })
+        break
+      default:
+        navigate("/investor/dashboard", { replace: true })
     }
-    setIsLoading(false)
+  } else {
+    alert(result.error)
   }
+  setIsLoading(false)
+}
+
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white">
-      {/* Navbar */}
-     <nav className="bg-white dark:bg-gray-800 shadow-md w-full">
-  <div className="flex justify-between items-center px-6 py-4">
-    {/* الشعار في أقصى اليسار */}
-    <Link to="/" className="flex items-center">
-      <img
-        src={logoSrc}
-        alt="Smart Bidder Logo"
-        className="h-10 w-auto object-contain"
-      />
-    </Link>
+      <nav className="bg-white dark:bg-gray-800 shadow-md w-full">
+        <div className="flex justify-between items-center px-6 py-4">
+          <Link to="/" className="flex items-center">
+            <img src={logoSrc} alt="Smart Bidder Logo" className="h-10 w-auto object-contain" />
+          </Link>
+          <button
+            onClick={toggleTheme}
+            className="text-gray-600 dark:text-gray-300 hover:text-emerald-500 transition"
+            aria-label="Toggle Dark Mode"
+          >
+            <svg className="h-6 w-6 block dark:hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                d="M12 3v1m0 16v1m8.66-11.66l-.7.7M4.34 4.34l.7.7M21 12h1M2 12H1m16.66 8.66l-.7-.7M4.34 19.66l.7-.7M12 5a7 7 0 000 14a7 7 0 000-14z" />
+            </svg>
+            <svg className="h-6 w-6 hidden dark:block" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                d="M21 12.79A9 9 0 1111.21 3a7 7 0 109.79 9.79z" />
+            </svg>
+          </button>
+        </div>
+      </nav>
 
-    {/* زر الوضع */}
-    <button
-      onClick={toggleTheme}
-      className="text-gray-600 dark:text-gray-300 hover:text-emerald-500 transition"
-      aria-label="Toggle Dark Mode"
-    >
-      {/* الشمس */}
-      <svg className="h-6 w-6 block dark:hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-          d="M12 3v1m0 16v1m8.66-11.66l-.7.7M4.34 4.34l.7.7M21 12h1M2 12H1m16.66 8.66l-.7-.7M4.34 19.66l.7-.7M12 5a7 7 0 000 14a7 7 0 000-14z" />
-      </svg>
-      {/* القمر */}
-      <svg className="h-6 w-6 hidden dark:block" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-          d="M21 12.79A9 9 0 1111.21 3a7 7 0 109.79 9.79z" />
-      </svg>
-    </button>
-  </div>
-</nav>
-
-
-      {/* Form Container */}
-      <div className="flex flex-col items-center justify-center py-16 px-4 sm:px-6 lg:px-8">
+      <div className="flex flex-col items-center justify-center py-8 px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col items-center mb-6">
-          <img
-            src={logoSrc}
-            alt="Smart Bidder Logo"
-            className="h-24 w-auto object-contain mb-2 transition-all duration-300"
-          />
+          <img src={logoSrc} alt="Smart Bidder Logo" className="h-24 w-auto object-contain mb-2 transition-all duration-300" />
           <p className="text-sm text-gray-500 dark:text-gray-400">Where Ideas Meet Investors</p>
-          <h2 className="text-xl font-semibold mt-6">Login to Your Account</h2>
+          <h2 className="text-2xl font-bold text-gray-800 dark:text-white mt-6">Login to Your Account</h2>
         </div>
 
-        <div className="bg-white dark:bg-gray-800 shadow-md rounded-lg px-8 py-8 max-w-md w-full">
+        <div className="bg-white dark:bg-gray-800 shadow-lg rounded-2xl px-8 py-10 max-w-md w-full">
           <form className="space-y-6" onSubmit={handleSubmit}>
             <div>
               <label htmlFor="username" className="block text-sm font-medium mb-1">Username</label>
@@ -106,7 +94,7 @@ const LoginPage = () => {
                 value={formData.username}
                 onChange={handleChange}
                 placeholder="Enter your username"
-                className="w-full px-3 py-2 rounded-md border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-slate-700 text-gray-900 dark:text-white focus:ring-emerald-500 focus:border-emerald-500"
+                className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-slate-800 text-sm text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500"
               />
             </div>
 
@@ -121,12 +109,12 @@ const LoginPage = () => {
                   value={formData.password}
                   onChange={handleChange}
                   placeholder="Enter your password"
-                  className="w-full px-3 py-2 pr-10 rounded-md border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-slate-700 text-gray-900 dark:text-white focus:ring-emerald-500 focus:border-emerald-500"
+                  className="w-full px-4 py-2 pr-10 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-slate-800 text-sm text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-2.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                  className="absolute right-2 top-2.5 p-1 rounded-full hover:bg-gray-100 dark:hover:bg-slate-600 transition"
                 >
                   {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                 </button>
@@ -142,7 +130,7 @@ const LoginPage = () => {
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full flex justify-center items-center gap-2 py-3 rounded-md bg-emerald-600 text-white font-semibold hover:bg-emerald-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full flex justify-center items-center gap-2 py-3 rounded-xl bg-emerald-600 shadow-md text-white text-base font-semibold hover:bg-emerald-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isLoading ? (
                 <svg className="animate-spin h-5 w-5 text-white" viewBox="0 0 24 24" fill="none">

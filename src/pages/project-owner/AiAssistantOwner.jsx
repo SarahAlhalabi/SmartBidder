@@ -14,21 +14,38 @@ import {
   Sparkles,
   ArrowRight,
   Star,
+  MessageCircle
 } from "lucide-react"
 import { useLanguage } from "../../contexts/LanguageContext"
 import { useAuth } from "../../contexts/AuthContext"
 import Header from "../../components/common/Header"
-
-const AIAssistant = () => {
+import axios from "axios"
+const AIAssistantOwner = () => {
   const { t, isRTL } = useLanguage()
   const { user } = useAuth()
   const messagesEndRef = useRef(null)
+  const [projects, setProjects] = useState([])
+  useEffect(() => {
+  const fetchProjects = async () => {
+    try {
+      const token = localStorage.getItem("accessToken")
+      const res = await axios.get("http://localhost:8000/projectowner/my-projects/", {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      setProjects(res.data)
+    } catch (error) {
+      console.error("Error fetching projects:", error)
+    }
+  }
+
+  fetchProjects()
+}, [])
 
   const [messages, setMessages] = useState([
     {
       id: 1,
       type: "ai",
-      content: t("Welcome! I'm here to help you find and evaluate the best investment opportunities."),
+      content: t("Welcome! I'm here to help you improve your project and choose the best offers"),
       timestamp: new Date().toISOString(),
     },
   ])
@@ -38,11 +55,11 @@ const AIAssistant = () => {
 
 
   const suggestedQuestions = [
-    "What are the best projects for a $50,000 investment?",
-    "Analyze the risk profile of technology projects",
-    "How should I diversify my investment portfolio?",
-    "What are the current market trends in healthcare investments?",
-    "Compare the ROI potential of different project categories",
+ "Which is the best investment offer submitted for my project?",
+  "Is this offer suitable for long-term growth?",
+  "What are the potential downsides of the highest-value offer?",
+  "Is a negotiated offer better than a direct one?",
+  "Which offer brings the most value considering ROI and risk?"
   ]
 
   useEffect(() => {
@@ -50,54 +67,60 @@ const AIAssistant = () => {
   }, [messages])
 
 const handleSendMessage = async () => {
-  if (!newMessage.trim()) return
+  if (!newMessage.trim()) return;
 
   const userMessage = {
     id: Date.now(),
     type: "user",
     content: newMessage,
     timestamp: new Date().toISOString(),
-  }
+  };
 
-  setMessages((prev) => [...prev, userMessage])
-  setNewMessage("")
-  setIsTyping(true)
+  setMessages((prev) => [...prev, userMessage]);
+  setNewMessage("");
+  setIsTyping(true);
 
   try {
-    const res = await fetch("http://127.0.0.1:8002/investor_chat", {
+    const res = await fetch("http://127.0.0.1:8001/ask", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        "Authorization": `Bearer ${localStorage.getItem("accessToken")}`,
       },
       body: JSON.stringify({
         prompt: newMessage,
         session_id: user?.id?.toString() || "default",
       }),
-    })
+    });
 
-    const data = await res.json()
+    if (!res.ok) {
+      throw new Error("Failed to fetch response from AI server");
+    }
+
+    const data = await res.json();
 
     const aiMessage = {
       id: Date.now() + 1,
       type: "ai",
-      content: data.answer, // ✅ عرض رد الذكاء الاصطناعي الفعلي
+      content: data.answer,
       timestamp: new Date().toISOString(),
-    }
+    };
 
-    setMessages((prev) => [...prev, aiMessage])
+    setMessages((prev) => [...prev, aiMessage]);
   } catch (error) {
-    console.error("❌ Chatbot error:", error)
+    console.error("❌ Chatbot error:", error);
     const errorMsg = {
       id: Date.now() + 1,
       type: "ai",
-      content: "Sorry, something went wrong. Please try again.",
+      content: "Sorry, authentication failed or AI service is unavailable.",
       timestamp: new Date().toISOString(),
-    }
-    setMessages((prev) => [...prev, errorMsg])
+    };
+    setMessages((prev) => [...prev, errorMsg]);
   } finally {
-    setIsTyping(false)
+    setIsTyping(false);
   }
-}
+};
+
 
 
 
@@ -128,8 +151,10 @@ const handleSendMessage = async () => {
       <Header />
       <div className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8 grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Chat Section */}
-        <div className="col-span-2 card h-[600px] flex flex-col">
-                   <div className="w-full max-w-6xl -mt-6 px-2 py-6 md:py-6 flex items-center gap-4 bg-transparent">
+        <div className="col-span-2 card h-[625px] flex flex-col">
+          <div className="p-0 border-b border-gray-200 dark:border-gray-700">
+            <div className="flex items-center gap-3">
+               <div className="w-full max-w-6xl -mt-6 px-2 py-6 md:py-6 flex items-center gap-4 bg-transparent">
   {/* أيقونة العنوان */}
   <div className="p-1 rounded-full bg-gradient-to-br from-blue-500 to-indigo-500 text-white shadow-md">
     <Bot className="h-6 w-6" />
@@ -138,11 +163,18 @@ const handleSendMessage = async () => {
   {/* نص العنوان والوصف */}
   <div>
     <h1 className="text-xl font-bold tracking-tight text-gray-900 dark:text-white ">
-      Smart <span className="text-blue-600"> Investment Advisor</span>
+      Ask your <span className="text-blue-600">Ai Advisor</span>
     </h1>
-    <div className="h-1 w-28 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full mt-2" />
+    <div className="h-1 w-24 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full mt-2" />
   </div>
 </div>
+              <div>
+                 <div>
+            </div>
+                
+              </div>
+            </div>
+          </div>
 
           <div className="flex-1 overflow-y-auto p-4 space-y-4">
             {messages.map((msg) => (
@@ -198,10 +230,32 @@ const handleSendMessage = async () => {
           </div>
 
           
+          <div className="card p-4 space-y-2">
+    <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Your Projects</h3>
+    {projects.length === 0 ? (
+      <p className="text-sm text-gray-500 dark:text-gray-400">No projects found.</p>
+    ) : (
+     <div className="space-y-2 max-h-48 overflow-y-auto">
+  {projects.map((project) => (
+    <button
+      key={project.id}
+      onClick={() => setNewMessage(project.title)}
+      className="w-full text-left text-sm px-3 py-2 bg-gray-100 dark:bg-gray-800 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-900 dark:text-white"
+    >
+      {project.title}
+    </button>
+  ))}
+</div>
+
+    )}
+  </div>
+
         </div>
+        
       </div>
     </div>
+    
   )
 }
 
-export default AIAssistant
+export default AIAssistantOwner

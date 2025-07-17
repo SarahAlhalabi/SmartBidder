@@ -1,6 +1,6 @@
 "use client"
 
-import { Bell, Check, X, Star, TrendingUp, MessageSquare, DollarSign,BellDot } from "lucide-react"
+import { Bell, Check, X, Star, TrendingUp, MessageSquare, DollarSign, BellDot } from "lucide-react"
 import { useLanguage } from "../../contexts/LanguageContext"
 import Header from "../../components/common/Header"
 import { useState, useEffect } from "react"
@@ -146,8 +146,9 @@ const deleteNotification = async (id) => {
       <Header />
 
       <div className="max-w-4xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
-       
-        <div className="w-full max-w-6xl -mt-10 px-2 py-6 md:py-8 flex items-center gap-4 bg-transparent">
+        <div>
+
+    <div className="w-full max-w-6xl -mt-10 px-2 py-6 md:py-8 flex items-center gap-4 bg-transparent">
   {/* أيقونة العنوان */}
   <div className="p-3 rounded-full bg-gradient-to-br from-blue-500 to-indigo-500 text-white shadow-md">
     <BellDot  className="h-6 w-6" />
@@ -161,9 +162,8 @@ const deleteNotification = async (id) => {
     <div className="h-1 w-16 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full mt-2" />
   </div>
 </div>
-          {/* <p className="text-gray-600 dark:text-gray-300 mt-2">Stay updated with your investment activities and opportunities</p> */}
-   
-
+                <p className="text-m text-gray-500 -mt-6 mb-6 px-16"> Stay updated with your investment activities and opportunities</p>
+            </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
           <div className="card text-center bg-white dark:bg-gray-800">
             <Bell className="w-8 h-8 text-blue-600 mx-auto mb-2" />

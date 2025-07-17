@@ -9,7 +9,7 @@ import {
   Clock,
   DollarSign,
   TrendingUp,
-  FolderKanban, CheckCircle2, XCircle,
+  FolderKanban, CheckCircle2, XCircle,Tag
 } from "lucide-react"
 import { useLanguage } from "../../contexts/LanguageContext"
 import Header from "../../components/common/Header"
@@ -112,10 +112,22 @@ useEffect(() => {
 
  <div className="max-w-screen-2xl mx-auto py-8 px-4 sm:px-8 lg:px-12">
 
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">{t("myOffers")}</h1>
-        <p className="text-gray-600 dark:text-gray-300 mb-6">
-          Track and manage your investment offers
-        </p>
+       <div className="w-full max-w-6xl -mt-10 px-2 py-6 md:py-8 flex items-center gap-4 bg-transparent">
+  {/* أيقونة العنوان */}
+  <div className="p-3 rounded-full bg-gradient-to-br from-blue-500 to-indigo-500 text-white shadow-md">
+    <Tag className="h-6 w-6" />
+  </div>
+
+  {/* نص العنوان والوصف */}
+  <div>
+    <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-white">
+      My <span className="text-blue-600">Offers</span>
+    </h1>
+    <div className="h-1 w-16 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full mt-2" />
+  </div>
+</div>
+                <p className="text-m text-gray-500 -mt-6 mb-6 px-16">Track and manage your investment offers</p>
+            
 
     
 
@@ -176,7 +188,7 @@ useEffect(() => {
               <option value="pending">{t("pending")}</option>
               <option value="approved">{t("approved")}</option>
               <option value="rejected">{t("rejected")}</option>
-              <option value="withdrawn">{t("withdrawn")}</option>
+              {/* <option value="withdrawn">{t("withdrawn")}</option> */}
             </select>
           </div>
         </div>

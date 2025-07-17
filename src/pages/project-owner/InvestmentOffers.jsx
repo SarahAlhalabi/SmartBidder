@@ -7,7 +7,7 @@ import { useNavigate } from "react-router-dom"
 import axios from "axios"
 import {
   Filter, Search, TrendingUp, User, Clock,
-  Star, MessageSquare, Check, X
+  Star, MessageSquare, Check, X, Handshake
 } from "lucide-react"
 import { useLanguage } from "../../contexts/LanguageContext"
 import Header from "../../components/common/Header"
@@ -19,6 +19,11 @@ const InvestmentOffers = () => {
   const [searchTerm, setSearchTerm] = useState("")
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState("")
+  const [selectedOffer, setSelectedOffer] = useState(null)
+const [rating, setRating] = useState(0)
+const [comment, setComment] = useState("")
+const [showRatingModal, setShowRatingModal] = useState(false)
+const [pendingAction, setPendingAction] = useState("")
   const [filters, setFilters] = useState({
     minAmount: "", maxAmount: "", minOwnership: "", maxOwnership: "", minRating: "", sortBy: "time"
   })
@@ -27,6 +32,7 @@ const InvestmentOffers = () => {
  useEffect(() => {
   const fetchOffers = async () => {
     try {
+      
       const token = localStorage.getItem("accessToken")
       const res = await axios.get("http://127.0.0.1:8000/projectowner/project-owner/offers/", {
         headers: { Authorization: `Bearer ${token}` },
@@ -38,7 +44,9 @@ const InvestmentOffers = () => {
           equity_percentage__lte: filters.maxOwnership || undefined,
           status: filters.status || undefined,
         }
+        
       })
+      console.log("Offers data from API:", res.data);
       setOffers(res.data)
     } catch (err) {
       setError("Failed to load offers")
@@ -49,6 +57,40 @@ const InvestmentOffers = () => {
 
   fetchOffers()
 }, [searchTerm, filters])
+
+const submitReview = async () => {
+  if (!selectedOffer) return;
+
+  console.log("selectedOffer.investor_id:", selectedOffer.investor_id, typeof selectedOffer.investor_id);
+  console.log("rating:", rating, typeof rating);
+  console.log("comment:", comment);
+
+  const token = localStorage.getItem("accessToken");
+
+  const payload = {
+    reviewed: selectedOffer.investor_id,
+    rating,
+    comment: comment || "",
+  };
+
+  console.log("Payload to send:", payload);
+
+  try {
+    const res = await axios.post("http://127.0.0.1:8000/accounts/reviews/submit/", payload, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    toast.success("Review submitted successfully");
+    setShowRatingModal(false);
+    setRating(0);
+    setComment("");
+  } catch (error) {
+    console.error("Failed to submit review:", error.response?.data || error);
+    toast.error("Failed to submit review");
+  }
+};
 
 
 
@@ -145,13 +187,65 @@ const handleOfferAction = async (offerId, action) => {
     return `${Math.floor(diffInHours / 24)}d ago`
   }
 
+
+
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
       <Header />
       <div className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">{t("investmentOffers")}</h1>
-        <p className="text-gray-600 dark:text-gray-400 mb-6">Review and manage investment offers for your projects</p>
+         <div>
 
+    <div className="w-full max-w-6xl -mt-10 px-2 py-6 md:py-8 flex items-center gap-4 bg-transparent">
+  {/* أيقونة العنوان */}
+  <div className="p-3 rounded-full bg-gradient-to-br from-blue-500 to-indigo-500 text-white shadow-md">
+    <Handshake  className="h-6 w-6" />
+  </div>
+
+  {/* نص العنوان والوصف */}
+  <div>
+    <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-white">
+      Investment <span className="text-blue-600">Offers</span>
+    </h1>
+    <div className="h-1 w-16 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full mt-2" />
+  </div>
+</div>
+                <p className="text-m text-gray-500 -mt-6 mb-6 px-16">Review and manage investment offers for your projects</p>
+            </div>
+{showRatingModal && (
+  <div className="fixed inset-0 z-50 bg-black bg-opacity-40 flex items-center justify-center">
+    <div className="bg-white dark:bg-gray-800 p-6 rounded-lg w-full max-w-md shadow-lg">
+      <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-4">Rate Investor</h2>
+      
+      <div className="flex gap-1 mb-4">
+        {[1, 2, 3, 4, 5].map((star) => (
+          <Star
+            key={star}
+            className={`w-6 h-6 cursor-pointer ${star <= rating ? 'text-yellow-400 fill-current' : 'text-gray-300'}`}
+            onClick={() => setRating(star)}
+          />
+        ))}
+      </div>
+
+      <textarea
+        placeholder="Add a comment "
+        className="w-full p-2 border border-gray-300 dark:border-gray-700 rounded bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white mb-4"
+        value={comment}
+        onChange={(e) => setComment(e.target.value)}
+      />
+
+      <div className="flex justify-end gap-2">
+        <button onClick={() => setShowRatingModal(false)} className="btn-secondary">Cancel</button>
+        <button
+          onClick={submitReview}
+          className="btn-primary"
+          disabled={rating === 0}
+        >
+          Submit
+        </button>
+      </div>
+    </div>
+  </div>
+)}
         {/* Filters */}
         <div className="card mb-6 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 p-4">
           <div className="flex flex-col sm:flex-row gap-4">
@@ -165,10 +259,7 @@ const handleOfferAction = async (offerId, action) => {
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
-            <button onClick={() => setShowFilters(!showFilters)} className="btn-secondary inline-flex items-center">
-              <Filter className={`w-4 h-4 ${isRTL ? "ml-2" : "mr-2"}`} />
-              {t("filterOffers")}
-            </button>
+           
           </div>
         </div>
 
@@ -186,6 +277,7 @@ const handleOfferAction = async (offerId, action) => {
         ) : (
           <div className="space-y-4">
             {sortedOffers.map((offer) => (
+              
               <div key={offer.id} className="card bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 p-4 rounded-xl shadow-sm hover:shadow-md transition-shadow">
                 <div className="flex items-start gap-4">
                   <div className="relative w-12 h-12">
@@ -222,23 +314,39 @@ const handleOfferAction = async (offerId, action) => {
                     </div>
 
                     <p className="text-sm text-gray-700 dark:text-gray-300 mb-1">
-                      <strong>Project:</strong> {offer.project}
-                    </p>
+  <strong>Project:</strong> {offer.project_title || "No project title"}
+</p>
+
                     <p className="text-sm text-gray-600 dark:text-gray-400">
                       {offer.additional_terms || "No message provided."}
                     </p>
 
-                    <div className="flex gap-2 mt-4">
-                      <button onClick={() => handleOfferAction(offer.id, "accept")} className="btn-primary text-sm px-4 py-2 flex items-center gap-1">
-                        <Check className="w-4 h-4" /> {t("accept")}
-                      </button>
-                      <button onClick={() => handleOfferAction(offer.id, "reject")} className="btn-secondary text-sm px-4 py-2 flex items-center gap-1">
-                        <X className="w-4 h-4" /> {t("reject")}
-                      </button>
-                      <button onClick={() => handleOfferAction(offer.id, "negotiate")} className="btn-secondary text-sm px-4 py-2 flex items-center gap-1">
-                        <MessageSquare className="w-4 h-4" /> {t("negotiate")}
-                      </button>
-                    </div>
+                    {offer.status.toLowerCase() === "pending" && (
+  <div className="flex gap-2 mt-4">
+    <button onClick={() => handleOfferAction(offer.id, "accept")} className="btn-primary text-sm px-4 py-2 flex items-center gap-1">
+      <Check className="w-4 h-4" /> {t("accept")}
+    </button>
+    <button onClick={() => handleOfferAction(offer.id, "reject")} className="btn-secondary text-sm px-4 py-2 flex items-center gap-1">
+      <X className="w-4 h-4" /> {t("reject")}
+    </button>
+    <button onClick={() => handleOfferAction(offer.id, "negotiate")} className="btn-secondary text-sm px-4 py-2 flex items-center gap-1">
+      <MessageSquare className="w-4 h-4" /> {t("negotiate")}
+    </button>
+   <button
+  onClick={() => {
+    console.log("Selected offer object:", offer); 
+    setSelectedOffer(offer); // تأكد أن offer يحتوي على investor_id
+    setShowRatingModal(true);
+  }}
+  className="btn-secondary text-sm px-4 py-2"
+>
+  Rate Investor
+</button>
+
+
+  </div>
+)}
+
                   </div>
                 </div>
               </div>

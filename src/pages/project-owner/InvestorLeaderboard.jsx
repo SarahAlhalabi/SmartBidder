@@ -1,75 +1,50 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Trophy, Star, TrendingUp, User, Award, Medal } from "lucide-react"
 import { useLanguage } from "../../contexts/LanguageContext"
 import Header from "../../components/common/Header"
 import { motion } from "framer-motion"
-
+import axios from "axios"
 const InvestorLeaderboard = () => {
   const { t } = useLanguage()
   const [timeFilter, setTimeFilter] = useState("all")
 
-  const investors = [
-    {
-      id: 1,
-      name: "Sarah Johnson",
-      image: "/placeholder.svg",
-      rating: 4.9,
-      totalInvestments: 15,
-      totalAmount: 750000,
-      successRate: 87,
-      specialties: ["Technology", "Healthcare"],
-      rank: 1,
-      badge: "gold",
-    },
-    {
-      id: 2,
-      name: "Michael Chen",
-      image: "/placeholder.svg",
-      rating: 4.8,
-      totalInvestments: 12,
-      totalAmount: 680000,
-      successRate: 83,
-      specialties: ["Finance", "Technology"],
-      rank: 2,
-      badge: "silver",
-    },
-    {
-      id: 3,
-      name: "Emily Rodriguez",
-      image: "/placeholder.svg",
-      rating: 4.7,
-      totalInvestments: 18,
-      totalAmount: 620000,
-      successRate: 79,
-      specialties: ["Retail", "Education"],
-      rank: 3,
-      badge: "bronze",
-    },
-    {
-      id: 4,
-      name: "David Kim",
-      image: "/placeholder.svg",
-      rating: 4.6,
-      totalInvestments: 10,
-      totalAmount: 450000,
-      successRate: 75,
-      specialties: ["Healthcare", "Technology"],
-      rank: 4,
-    },
-    {
-      id: 5,
-      name: "Lisa Wang",
-      image: "/placeholder.svg",
-      rating: 4.5,
-      totalInvestments: 8,
-      totalAmount: 380000,
-      successRate: 72,
-      specialties: ["Education", "Finance"],
-      rank: 5,
-    },
-  ]
+ const [investors, setInvestors] = useState([]);
+const [loading, setLoading] = useState(true);
+const [error, setError] = useState(null);
+const stats = [
+  {
+    icon: <Star className="w-8 h-8 text-yellow-500 mx-auto mb-2" />,
+    value: investors.length > 0 ? (investors.reduce((acc, i) => acc + i.rating_score, 0) / investors.length).toFixed(2) : "0",
+    label: "Average Rating",
+  },
+  {
+    icon: <Trophy className="w-8 h-8 text-primary-600 dark:text-primary-400 mx-auto mb-2" />,
+    value: investors.length,
+    label: "Top Investors",
+  },
+  // أضف إحصائيات أخرى إذا لزم الأمر
+]
+useEffect(() => {
+  const fetchTopInvestors = async () => {
+    setLoading(true);
+    try {
+      const res = await axios.get("http://127.0.0.1:8000/investor/top-investors/");
+      // المفترض البيانات تجي بالشكل المناسب مباشرة
+      // إذا في اختلاف في البنية يمكنك تعديلها هنا
+      setInvestors(res.data);
+      setError(null);
+    } catch (err) {
+      setError("Failed to load top investors");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  fetchTopInvestors();
+}, []);
+
 
   const getBadgeIcon = (badge) => {
     switch (badge) {
@@ -97,38 +72,34 @@ const InvestorLeaderboard = () => {
     }
   }
 
-  const stats = [
-    {
-      icon: <TrendingUp className="w-8 h-8 text-primary-600 dark:text-primary-400 mx-auto mb-2" />,
-      value: "$2.8M",
-      label: "Total Platform Investment",
-    },
-    {
-      icon: <User className="w-8 h-8 text-green-600 mx-auto mb-2" />,
-      value: "63",
-      label: "Active Investors",
-    },
-    {
-      icon: <Star className="w-8 h-8 text-yellow-500 mx-auto mb-2" />,
-      value: "4.7",
-      label: "Average Rating",
-    },
-    {
-      icon: <Award className="w-8 h-8 text-purple-600 mx-auto mb-2" />,
-      value: "78%",
-      label: "Success Rate",
-    },
-  ]
+  if (loading) return <p>Loading top investors...</p>;
+  if (error) return <p className="text-red-600">{error}</p>;
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
       <Header />
 
       <div className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">{t("topInvestors")}</h1>
-          <p className="text-gray-600 dark:text-gray-400 mt-2">Discover and connect with the most successful investors on our platform</p>
-        </div>
+       <div>
+
+    <div className="w-full max-w-6xl -mt-10 px-2 py-6 md:py-8 flex items-center gap-4 bg-transparent">
+  {/* أيقونة العنوان */}
+  <div className="p-3 rounded-full bg-gradient-to-br from-blue-500 to-indigo-500 text-white shadow-md">
+    <Star  className="h-6 w-6" />
+  </div>
+
+  {/* نص العنوان والوصف */}
+  <div>
+      <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-white">
+      Top <span className="text-blue-600">Investors</span>
+    </h1>
+    <div className="h-1 w-16 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full mt-2" />
+  </div>
+</div>
+                <p className="text-m text-gray-500 -mt-6 mb-6 px-16">Discover and connect with the most successful investors on our platform</p>
+            </div>
+         
+       
 
         <div className="card mb-6">
           <div className="flex items-center justify-between">

@@ -4,6 +4,7 @@ import { useState } from "react"
 import { Link } from "react-router-dom"
 import { Mail, ArrowLeft, CheckCircle } from "lucide-react"
 import { useTheme } from "../../contexts/ThemeContext"
+import axios from "axios"
 
 const ForgotPassword = ({ darkMode, direction }) => {
   const [email, setEmail] = useState("")
@@ -11,46 +12,54 @@ const ForgotPassword = ({ darkMode, direction }) => {
   const [isSubmitted, setIsSubmitted] = useState(false)
   const [error, setError] = useState("")
 
+  const { isDarkMode } = useTheme()
+  const logoSrc = isDarkMode ? "/logo-dark2.png" : "/logo1.png"
+
   const handleChange = (e) => {
     setEmail(e.target.value)
     setError("")
   }
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
 
-    // Basic email validation
     if (!email || !email.includes("@") || !email.includes(".")) {
-      setError("Please enter a valid email address")
+      setError(direction === "rtl" ? "يرجى إدخال بريد إلكتروني صالح" : "Please enter a valid email address")
       return
     }
 
     setIsLoading(true)
     setError("")
 
-    // Simulate API call
-    setTimeout(() => {
-      console.log("Password reset requested for:", email)
-      setIsLoading(false)
+    try {
+      const response = await axios.post("http://localhost:8000/accounts/reset-password/", { email })
+      // نجاح - تم ارسال كلمة السر الجديدة
       setIsSubmitted(true)
-    }, 1500)
+    } catch (err) {
+      // الخطأ من API
+      const msg =
+        err.response?.data?.email?.[0] ||
+        err.response?.data?.detail ||
+        (direction === "rtl" ? "حدث خطأ ما. الرجاء المحاولة مرة أخرى." : "Something went wrong. Please try again.")
+      setError(msg)
+    } finally {
+      setIsLoading(false)
+    }
   }
-const { isDarkMode, toggleTheme } = useTheme()
-const logoSrc = isDarkMode ? "/logo-dark2.png" : "/logo1.png"
 
   return (
     <div className="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8">
-       <div className="text-center">
-  <Link to="/" className="inline-block">
-    <img
-      src={logoSrc}
-      alt="Smart Bidder Logo"
-      className="h-20 w-auto mx-auto mb-1 object-contain"
-    />
-  </Link>
-  <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">Where Ideas Meet Investors</p>
-</div>
+        <div className="text-center">
+          <Link to="/" className="inline-block">
+            <img
+              src={logoSrc}
+              alt="Smart Bidder Logo"
+              className="h-20 w-auto mx-auto mb-1 object-contain"
+            />
+          </Link>
+          <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">Where Ideas Meet Investors</p>
+        </div>
 
         <div
           className={`mt-8 bg-white dark:bg-slate-800 py-8 px-4 shadow sm:rounded-lg sm:px-10 ${
@@ -60,12 +69,12 @@ const logoSrc = isDarkMode ? "/logo-dark2.png" : "/logo1.png"
           {!isSubmitted ? (
             <>
               <h2 className="text-2xl font-bold mb-2 text-center text-gray-900 dark:text-white">
-                {direction === "rtl" ? "استعادة كلمة المرور" : "Forgot Your Password?"}
+                {direction === "rtl" ? "إعادة تعيين كلمة المرور" : "Reset Your Password"}
               </h2>
               <p className="text-center text-gray-600 dark:text-gray-400 mb-6">
                 {direction === "rtl"
-                  ? "أدخل بريدك الإلكتروني وسنرسل لك رابطًا لإعادة تعيين كلمة المرور"
-                  : "Enter your email and we'll send you a link to reset your password"}
+                  ? "أدخل بريدك الإلكتروني وسنرسل لك كلمة مرور جديدة عشوائية"
+                  : "Enter your email and we'll send you a new random password"}
               </p>
 
               <form className="space-y-6" onSubmit={handleSubmit}>
@@ -125,10 +134,10 @@ const logoSrc = isDarkMode ? "/logo-dark2.png" : "/logo1.png"
                     {direction === "rtl"
                       ? isLoading
                         ? "جاري الإرسال..."
-                        : "إرسال رابط إعادة التعيين"
+                        : "إرسال كلمة المرور الجديدة"
                       : isLoading
-                        ? "Sending..."
-                        : "Send Reset Link"}
+                      ? "Sending..."
+                      : "Send New Password"}
                   </button>
                 </div>
               </form>
@@ -143,12 +152,12 @@ const logoSrc = isDarkMode ? "/logo-dark2.png" : "/logo1.png"
               </h2>
               <p className="text-gray-600 dark:text-gray-400 mb-6">
                 {direction === "rtl"
-                  ? `لقد أرسلنا بريدًا إلكترونيًا إلى ${email} مع تعليمات حول كيفية إعادة تعيين كلمة المرور الخاصة بك.`
-                  : `We've sent an email to ${email} with instructions on how to reset your password.`}
+                  ? `تم إرسال كلمة المرور الجديدة إلى البريد الإلكتروني: ${email}`
+                  : `A new password has been sent to your email: ${email}`}
               </p>
               <p className="text-gray-600 dark:text-gray-400 mb-6">
                 {direction === "rtl"
-                  ? "إذا لم تتلق البريد الإلكتروني، فيرجى التحقق من مجلد البريد العشوائي أو المحاولة مرة أخرى."
+                  ? "إذا لم تستلم البريد الإلكتروني، يرجى التحقق من مجلد الرسائل غير المرغوب فيها أو المحاولة مرة أخرى."
                   : "If you don't receive the email, please check your spam folder or try again."}
               </p>
             </div>

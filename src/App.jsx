@@ -21,14 +21,27 @@ import MyOffers from "./pages/investor/MyOffers"
 import InvestorMessages from "./pages/investor/InvestorMessages"
 import ProjectLeaderboard from "./pages/investor/ProjectLeaderboard"
 import Notifications from "./pages/investor/Notifications"
+import ProjectOwnerNotifications from "./pages/project-owner/Notifications"
 import NegotiationRoom from "./pages/common/NegotiationRoom"
 import AIAssistant from "./pages/investor/AIAssistant"
+import AIAssistantOwner from "./pages/project-owner/AIAssistantOwner"
 import ForgotPassword from "./pages/auth/ForgotPassword"
 import Profile from "./pages/project-owner/Profile"
 import EditProfile from "./pages/project-owner/EditProfile"
 import Settings from "./pages/project-owner/Settings"
 import ChatWidgetButton from "./components/common/ChatWidgetButton";
+import HelpAndPolicies from "./components/common/HelpAndPolicies";
+import Footer from "./components/common/Footer";
 import ChatBot from "./components/common/ChatBot";
+import InvestorProfile from "./pages/investor/InvestorProfile" ;
+import EditInvestorProfile from "./pages/investor/EditInvestorProfile" ;
+import AdminManageInvestors from "./pages/admin/AdminManageInvestors"
+import AdminManageProjectOwners from "./pages/admin/AdminManageProjectOwners"
+import AdminReviewProjects from "./pages/admin/AdminReviewProjects"
+import AdminOffers from "./pages/admin/AdminOffers"
+import AdminProjectDetails from "./pages/admin/AdminProjectDetails";
+import AdminNotifications from "./pages/admin/AdminNotifications"
+import AdminReports from "./pages/admin/AdminReports"
 import { ToastContainer } from 'react-toastify';
 function App() {
   return (
@@ -123,6 +136,14 @@ function App() {
                 />
                 <Route path="/project-owner/edit-profile" element={<EditProfile />} />
 
+<Route
+  path="/project-owner/notifications"
+  element={
+    <ProtectedRoute allowedRoles={["project-owner"]}>
+      <ProjectOwnerNotifications />
+    </ProtectedRoute>
+  }
+/>
 
 <Route path="/project-owner/settings" element={<Settings />} />
 
@@ -183,6 +204,31 @@ function App() {
                     </ProtectedRoute>
                   }
                 />
+                <Route
+                  path="/project-owner/ai-assistant"
+                  element={
+                    <ProtectedRoute allowedRoles={["project-owner"]}>
+                      <AIAssistantOwner />
+                    </ProtectedRoute>
+                  }
+                />
+                   <Route
+                  path="/investor/investor-profile"
+                   element={
+    <ProtectedRoute allowedRoles={["investor"]}>
+      <InvestorProfile />
+    </ProtectedRoute>
+  }
+  
+                />
+                    <Route
+      path="/investor/edit-profile"
+      element={
+        <ProtectedRoute allowedRoles={["investor"]}>
+          <EditInvestorProfile />
+        </ProtectedRoute>
+      }
+    />
                 {/* Negotiation Routes - Accessible by both investors and project owners */}
                 <Route
                   path="/negotiation/:negotiationId"
@@ -193,9 +239,81 @@ function App() {
                   }
                 />
                 <Route path="/chatbot" element={<ChatBot />} />
-
+  <Route
+    path="/admin/investors"
+    element={
+      <ProtectedRoute allowedRoles={["admin"]}>
+        <AdminManageInvestors />
+      </ProtectedRoute>
+    }
+  />
+   <Route
+    path="/admin/project-owners"
+    element={
+      <ProtectedRoute allowedRoles={["admin"]}>
+        <AdminManageProjectOwners />
+      </ProtectedRoute>
+    }
+  />
+  <Route
+  path="/admin/review-projects"
+  element={
+    <ProtectedRoute allowedRoles={["admin"]}>
+      <AdminReviewProjects />
+    </ProtectedRoute>
+  }
+/>
+  <Route
+  path="/admin/project/:id"
+  element={
+    <ProtectedRoute allowedRoles={["admin"]}>
+      <AdminProjectDetails />
+    </ProtectedRoute>
+  }
+/>
+<Route
+  path="/admin/offers"
+  element={
+    <ProtectedRoute allowedRoles={["admin"]}>
+      <AdminOffers />
+    </ProtectedRoute>
+  }
+/>
+<Route
+  path="/admin/notifications"
+  element={
+    <ProtectedRoute allowedRoles={["admin"]}>
+      <AdminNotifications />
+    </ProtectedRoute>
+  }
+/>
+<Route
+  path="/admin/reports"
+  element={
+    <ProtectedRoute allowedRoles={["admin"]}>
+      <AdminReports />
+    </ProtectedRoute>
+  }
+/>
+<Route
+  path="/help-policies"
+  element={
+    <ProtectedRoute allowedRoles={["admin", "investor", "project-owner"]}>
+      <HelpAndPolicies />
+    </ProtectedRoute>
+  }
+/>
+<Route
+  path="/footer"
+  element={
+    <ProtectedRoute allowedRoles={["admin", "investor", "project-owner"]}>
+      <Footer />
+    </ProtectedRoute>
+  }
+/>
               </Routes>
               <ChatWidgetButton />
+              
             </div>
           </Router>
         </AuthProvider>

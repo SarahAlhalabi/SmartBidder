@@ -134,6 +134,9 @@ const ProjectDetails = () => {
                 {project.title}
                 <span className="block w-20 h-1 bg-gradient-to-r from-blue-500 to-purple-500 mt-1 rounded-full"></span>
               </h1>
+<h2 className="text-md text-gray-600 dark:text-gray-400 mb-2">
+  Owner: <span className="font-medium text-gray-800 dark:text-gray-200">{project.owner_name}</span>
+</h2>
 
               <div className="flex items-center flex-wrap gap-2 mb-4">
                 <span className="px-3 py-1 bg-blue-100 text-blue-800 text-sm font-medium rounded-full">
@@ -219,12 +222,18 @@ const ProjectDetails = () => {
                   <span className="font-bold text-right">${project.feasibility_study?.current_revenue?.toLocaleString()}</span>
                 </div>
 
-                <div className="w-full bg-gray-200 dark:bg-gray-600 rounded-full h-3">
-                  <div
-                    className="bg-gradient-to-r from-green-400 to-blue-500 h-3 rounded-full"
-                    style={{ width: `${((project.feasibility_study?.current_revenue || 0) / (project.feasibility_study?.funding_required || 1)) * 100}%` }}
-                  ></div>
-                </div>
+                <div className="w-full bg-gray-200 dark:bg-gray-600 rounded-full h-4 shadow-inner">
+  <div
+    className="bg-green-500 h-4 rounded-full shadow-md transition-all duration-500 ease-in-out"
+    style={{
+      width: `${Math.min(
+        ((project.feasibility_study?.current_revenue || 0) / (project.feasibility_study?.funding_required || 1)) * 100,
+        100
+      )}%`,
+    }}
+  ></div>
+</div>
+
 
                 <div className="text-center text-sm">
                   {Math.round(((project.feasibility_study?.current_revenue || 0) / (project.feasibility_study?.funding_required || 1)) * 100)}% funded

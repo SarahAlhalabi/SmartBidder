@@ -174,11 +174,7 @@ useEffect(() => {
 
     {/* ✅ الروابط */}
     <div className="hidden md:flex items-center gap-6 text-[15px] font-medium">
-      <Link to="/" className="text-gray-700 dark:text-gray-300 hover:text-emerald-600">Home</Link>
-      <Link to="#about" className="text-gray-700 dark:text-gray-300 hover:text-emerald-600">About</Link>
-      <Link to="#features" className="text-gray-700 dark:text-gray-300 hover:text-emerald-600">Features</Link>
-      <Link to="#projects" className="text-gray-700 dark:text-gray-300 hover:text-emerald-600">Projects</Link>
-      <Link to="#investors" className="text-gray-700 dark:text-gray-300 hover:text-emerald-600">Investors</Link>
+      
 
       <button
         onClick={() => setIsDark(!isDark)}

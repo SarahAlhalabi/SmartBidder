@@ -6,10 +6,12 @@ import { Eye, EyeOff, Upload, User, Check } from "lucide-react"
 import { useLocation } from "react-router-dom"
 import { useEffect } from "react"
 import { useTheme } from "../../contexts/ThemeContext"
-
+import { toast } from "react-toastify"
+import "react-toastify/dist/ReactToastify.css"
 
 const RegisterPage = ({ darkMode, direction }) => {
   const location = useLocation()
+const [hasCompany, setHasCompany] = useState(false)
 
 useEffect(() => {
   if (location.state?.role) {
@@ -35,7 +37,9 @@ const [formData, setFormData] = useState({
   idCardPicture: null,
   termsAccepted: false,
   company_name: "",              // 👈 أضف هذا
-  commercial_register: "",       // 👈 وأضف هذا أيضًا
+  commercial_register: "",
+  commercial_register_image: null, // 👈 أضف هذا السطر
+       // 👈 وأضف هذا أيضًا
 })
 
   const [profilePreview, setProfilePreview] = useState(null)
@@ -96,13 +100,19 @@ const handleSubmit = async (e) => {
     form.append("id_card_picture", formData.idCardPicture)
   }
 
-  // إذا كان المستثمر: أضف الحقول الخاصة
-  if (formData.role === "investor") {
+  // إذا كان المستثمر ولديه شركة: أضف الحقول الخاصة
+  if (formData.role === "investor" && hasCompany === true) {
     if (formData.company_name) {
       form.append("company_name", formData.company_name)
     }
     if (formData.commercial_register) {
       form.append("commercial_register", formData.commercial_register)
+    }
+    if (
+      formData.commercial_register_image &&
+      formData.commercial_register_image instanceof File
+    ) {
+      form.append("commercial_register_image", formData.commercial_register_image)
     }
   }
 
@@ -121,8 +131,16 @@ const handleSubmit = async (e) => {
     const data = await response.json()
 
     if (response.ok) {
-      alert("Account created successfully!")
-      navigate("/login", { replace: true })
+      toast.success(
+        "Your account has been created. It will be reviewed and approval will be sent to your email.",
+        {
+          position: "top-center",
+          autoClose: 5000,
+        }
+      )
+      setTimeout(() => {
+        navigate("/login", { replace: true })
+      }, 3000)
     } else {
       console.error("Registration error:", data)
       alert("Registration failed. Please check your input.")
@@ -132,6 +150,7 @@ const handleSubmit = async (e) => {
     alert("Something went wrong. Please try again later.")
   }
 }
+
 
 
   const togglePasswordVisibility = () => {
@@ -390,39 +409,106 @@ const handleSubmit = async (e) => {
                 />
               </div>
             </div>
+            {/* سؤال: هل لديك شركة؟ */}
 {formData.role === "investor" && (
   <>
-    <div>
-      <label htmlFor="company_name" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-        {direction === "rtl" ? "اسم الشركة" : "Company Name"}
+    {/* سؤال: هل لديك شركة؟ */}
+    <div className="mt-4">
+      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+        {direction === "rtl" ? "هل لديك شركة؟" : "Do you have a company?"}
       </label>
-      <input
-        type="text"
-        id="company_name"
-        name="company_name"
-        value={formData.company_name || ""}
-        onChange={handleChange}
-        className="appearance-none block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-emerald-500 focus:border-emerald-500 sm:text-sm bg-white dark:bg-slate-700 text-gray-900 dark:text-white"
-        placeholder={direction === "rtl" ? "أدخل اسم الشركة" : "Enter company name"}
-      />
+      <div className="flex space-x-4 rtl:space-x-reverse">
+        <label className="inline-flex items-center">
+          <input
+            type="radio"
+            name="hasCompany"
+            value="yes"
+            checked={hasCompany === true}
+            onChange={() => setHasCompany(true)}
+            className="text-emerald-600 focus:ring-emerald-500"
+          />
+          <span className="ml-2 text-sm text-gray-700 dark:text-gray-300">
+            {direction === "rtl" ? "نعم" : "Yes"}
+          </span>
+        </label>
+        <label className="inline-flex items-center">
+          <input
+            type="radio"
+            name="hasCompany"
+            value="no"
+            checked={hasCompany === false}
+            onChange={() => setHasCompany(false)}
+            className="text-emerald-600 focus:ring-emerald-500"
+          />
+          <span className="ml-2 text-sm text-gray-700 dark:text-gray-300">
+            {direction === "rtl" ? "لا" : "No"}
+          </span>
+        </label>
+      </div>
     </div>
 
-    <div className="mt-4">
-      <label htmlFor="commercial_register" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-        {direction === "rtl" ? "السجل التجاري" : "Commercial Register"}
-      </label>
-      <input
-        type="text"
-        id="commercial_register"
-        name="commercial_register"
-        value={formData.commercial_register || ""}
-        onChange={handleChange}
-        className="appearance-none block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-emerald-500 focus:border-emerald-500 sm:text-sm bg-white dark:bg-slate-700 text-gray-900 dark:text-white"
-        placeholder={direction === "rtl" ? "أدخل رقم السجل التجاري" : "Enter commercial register"}
-      />
-    </div>
+    {/* الحقول الإضافية إذا كان لديه شركة */}
+    {hasCompany && (
+      <>
+        {/* اسم الشركة */}
+        <div className="mt-4">
+          <label htmlFor="company_name" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+            {direction === "rtl" ? "اسم الشركة" : "Company Name"}
+          </label>
+          <input
+            type="text"
+            id="company_name"
+            name="company_name"
+            value={formData.company_name || ""}
+            onChange={handleChange}
+            required={hasCompany}
+            className="appearance-none block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-emerald-500 focus:border-emerald-500 sm:text-sm bg-white dark:bg-slate-700 text-gray-900 dark:text-white"
+            placeholder={direction === "rtl" ? "أدخل اسم الشركة" : "Enter company name"}
+          />
+        </div>
+
+        {/* رقم السجل التجاري */}
+        <div className="mt-4">
+          <label htmlFor="commercial_register" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+            {direction === "rtl" ? "رقم السجل التجاري" : "Commercial Register Number"}
+          </label>
+          <input
+            type="text"
+            id="commercial_register"
+            name="commercial_register"
+            value={formData.commercial_register || ""}
+            onChange={handleChange}
+            required={hasCompany}
+            className="appearance-none block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-emerald-500 focus:border-emerald-500 sm:text-sm bg-white dark:bg-slate-700 text-gray-900 dark:text-white"
+            placeholder={direction === "rtl" ? "أدخل رقم السجل التجاري" : "Enter commercial register number"}
+          />
+        </div>
+
+        {/* صورة السجل التجاري */}
+        <div className="mt-4">
+          <label htmlFor="commercial_register_image" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            {direction === "rtl" ? "صورة السجل التجاري" : "Commercial Register Image"}
+          </label>
+          <input
+            type="file"
+            id="commercial_register_image"
+            name="commercial_register_image"
+            accept="image/*"
+            onChange={handleChange}
+            required={hasCompany}
+            className="block w-full text-sm text-gray-500 dark:text-gray-400
+              file:mr-4 file:py-2 file:px-4
+              file:rounded-md file:border-0
+              file:text-sm file:font-semibold
+              file:bg-emerald-50 file:text-emerald-700
+              hover:file:bg-emerald-100"
+          />
+        </div>
+      </>
+    )}
   </>
 )}
+
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Profile Picture Upload */}

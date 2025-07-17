@@ -1,14 +1,22 @@
 "use client"
 
-import { useState } from "react"
-import { Mail, Phone, Lock, Bell, Globe, Check, Edit } from "lucide-react"
+import { useState, useEffect } from "react"
+import { Mail, Phone, Lock, Bell, Globe, Check, Edit, Settings } from "lucide-react"
 import Header from "../../components/common/Header"
 import { useLanguage } from "../../contexts/LanguageContext"
 import { useAuth } from "../../contexts/AuthContext"
+import { useNavigate } from "react-router-dom"
 import axios from "axios"
 const SettingsPage = () => {
   const { t, language, changeLanguage } = useLanguage()
   const { user } = useAuth()
+const navigate = useNavigate()
+
+useEffect(() => {
+  if (!user) {
+    navigate("/login") // غيّر المسار إذا كان مختلفًا عندك
+  }
+}, [user])
 
   const [formData, setFormData] = useState({
     email: user?.email || "",
@@ -86,8 +94,23 @@ const SettingsPage = () => {
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <Header />
       <div className="max-w-3xl mx-auto px-4 py-12">
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Account Settings</h1>
-        <p className="text-gray-600 dark:text-gray-400 mb-8">Manage your account preferences and security settings</p>
+        <div>
+
+    <div className="w-full max-w-6xl -mt-10 px-2 py-6 md:py-8 flex items-center gap-4 bg-transparent">
+  {/* أيقونة العنوان */}
+  <div className="p-3 rounded-full bg-gradient-to-br from-blue-500 to-indigo-500 text-white shadow-md">
+    <Settings  className="h-6 w-6" />
+  </div>
+
+  {/* نص العنوان والوصف */}
+  <div>
+    <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-white"> Settings</h1>
+    <div className="h-1 w-16 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full mt-2" />
+  </div>
+</div>
+                <p className="text-m text-gray-500 -mt-6 mb-6 px-16">Manage your account preferences and security settings</p>
+            </div>
+        {/* <p className="text-gray-600 dark:text-gray-400 mb-8">Manage your account preferences and security settings</p> */}
 
         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6 space-y-6">
           {/* Email */}
@@ -146,16 +169,7 @@ const SettingsPage = () => {
             </div>
           </div>
 
-          {/* Language */}
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <Globe className="w-5 h-5 text-gray-500 dark:text-gray-400" />
-              <span className="text-gray-900 dark:text-white">Language: {language === "en" ? "English" : "العربية"}</span>
-            </div>
-            <button className="text-sm text-emerald-600 hover:underline" onClick={() => changeLanguage(language === "en" ? "ar" : "en")}>
-              Switch
-            </button>
-          </div>
+         
         </div>
       </div>
     </div>

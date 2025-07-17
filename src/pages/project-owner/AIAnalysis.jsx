@@ -3,7 +3,7 @@ import { useState } from "react"
 import { Brain, TrendingUp, AlertTriangle, CheckCircle, BarChart3, Target } from "lucide-react"
 import { useLanguage } from "../../contexts/LanguageContext"
 import Header from "../../components/common/Header"
-
+import Footer from "../../components/common/Footer"
 const AIAnalysis = () => {
   const { t, isRTL } = useLanguage()
   const [selectedProject, setSelectedProject] = useState("1")
@@ -125,10 +125,24 @@ const AIAnalysis = () => {
       <Header />
 
       <div className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">{t("aiAnalysis")}</h1>
-          <p className="text-gray-600 dark:text-gray-300 mt-2">AI-powered insights and recommendations for your projects</p>
-        </div>
+         <div>
+
+    <div className="w-full max-w-6xl -mt-10 px-2 py-6 md:py-8 flex items-center gap-4 bg-transparent">
+  {/* أيقونة العنوان */}
+  <div className="p-3 rounded-full bg-gradient-to-br from-blue-500 to-indigo-500 text-white shadow-md">
+    <BarChart3 className="h-6 w-6" />
+  </div>
+
+  {/* نص العنوان والوصف */}
+  <div>
+      <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-white">
+      Data <span className="text-blue-600">Analysis</span>
+    </h1>
+    <div className="h-1 w-16 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full mt-2" />
+  </div>
+</div>
+              
+            </div>
 
         {/* Project Selection */}
         <div className="card mb-6">
@@ -366,7 +380,9 @@ const AIAnalysis = () => {
           </div>
         </div>
       </div>
+       <Footer onOpenContact={() => setModalOpen(true)} />
     </div>
+    
   )
 }
 

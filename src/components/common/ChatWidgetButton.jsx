@@ -1,17 +1,29 @@
 import { useNavigate, useLocation } from "react-router-dom"
 import { useState } from "react"
+import { useAuth } from "../../contexts/AuthContext"
 
 const ChatWidgetButton = () => {
   const navigate = useNavigate()
   const location = useLocation()
+  const { user } = useAuth()
+  const userRole = user?.role
   const [hovered, setHovered] = useState(false)
 
-  // الصفحات التي لا نريد ظهور الشات فيها
   const hideChatbotPages = ["/login", "/register", "/forgot-password", "/"]
-  const shouldHide = hideChatbotPages.includes(location.pathname)
+  const shouldHide = hideChatbotPages.includes(location.pathname) || userRole === "admin"
 
-  // لا تعرض الزر في الصفحات المحددة
   if (shouldHide) return null
+
+  // ✅ عند الضغط انتقل لصفحة الشات
+  const handleClick = () => {
+    if (userRole === "investor") {
+      navigate("/investor/ai-assistant")
+    } else if (userRole === "project-owner") {
+      navigate("/project-owner/ai-assistant")
+    } else {
+      alert("Chatbot not available for this user.")
+    }
+  }
 
   return (
     <div
@@ -26,7 +38,7 @@ const ChatWidgetButton = () => {
       )}
 
       <button
-        onClick={() => navigate("/chatbot")}
+        onClick={handleClick}
         className="bg-gradient-to-r from-green-500 via-blue-500 to-purple-600 p-3 rounded-full shadow-2xl hover:scale-105 transition-all"
         aria-label="Open Chat"
       >

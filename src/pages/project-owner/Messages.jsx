@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect, useRef } from "react"
-import { Send, Search, MessageSquare } from "lucide-react"
+import { Send, Search, MessageSquare,MessageCircle } from "lucide-react"
 import { useLanguage } from "../../contexts/LanguageContext"
 import Header from "../../components/common/Header"
 import axios from "axios"
@@ -101,10 +101,22 @@ const Messages = () => {
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <Header />
       <div className="max-w-screen-xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
-        <div className="mb-6">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">{t("messages")}</h1>
-          <p className="text-gray-600 dark:text-gray-300 mt-2">Communicate with users and manage negotiations</p>
-        </div>
+         <div>
+
+    <div className="w-full max-w-6xl -mt-10 px-2 py-6 md:py-8 flex items-center gap-4 bg-transparent">
+  {/* أيقونة العنوان */}
+  <div className="p-3 rounded-full bg-gradient-to-br from-blue-500 to-indigo-500 text-white shadow-md">
+    <MessageSquare  className="h-6 w-6" />
+  </div>
+
+  {/* نص العنوان والوصف */}
+  <div>
+    <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-white">Messages</h1>
+    <div className="h-1 w-16 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full mt-2" />
+  </div>
+</div>
+                <p className="text-m text-gray-500 -mt-6 mb-6 px-16">Communicate with users and manage negotiations</p>
+            </div>
 
         <div className="flex flex-col lg:flex-row gap-6" style={{ height: "75vh" }}>
           {/* Sidebar */}
