@@ -12,6 +12,8 @@ import Footer from "./Footer";
 import { motion } from "framer-motion";
 import TermsAndConditionsCard from "./TermsAndConditionsCard";
 import PrivacyPolicyCard from "./PrivacyPolicyCard"
+import { toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 const containerVariants = {
   hidden: { opacity: 0 },
   visible: {
@@ -141,37 +143,43 @@ const location = useLocation();
   const shortText = "Smart Bidder is an innovative platform designed to streamline and optimize the investment bidding process for project owners and investors...";
   const fullText = `Smart Bidder is an innovative platform designed to streamline and optimize the investment bidding process for project owners and investors. Our mission is to empower entrepreneurs by connecting them with the best investment offers, while providing investors with transparent, data-driven opportunities that maximize returns. With advanced AI-driven analytics and seamless communication tools, Smart Bidder ensures smarter decision-making, faster deal closures, and long-term partnerships built on trust and mutual growth. At Smart Bidder, we believe in transforming the investment landscape to be more accessible, efficient, and beneficial for all stakeholders.`;
 
-  const handleComplaintSubmit = async (e) => {
-    e.preventDefault();
-    setError("");
-    setSuccess("");
+ const handleComplaintSubmit = async (e) => {
+  e.preventDefault();
+  setError("");
+  setSuccess("");
 
-    try {
-      const token = localStorage.getItem("accessToken");
-      await axios.post(
-        "http://127.0.0.1:8000/adminAccounts/submit-complaint/",
-        {
-          description,
-          defendant_full_name: defendantName,
+  try {
+    const token = localStorage.getItem("accessToken");
+    await axios.post(
+      "http://127.0.0.1:8000/adminAccounts/submit-complaint/",
+      {
+        description,
+        defendant_username: defendantName,
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
         },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-      setSuccess("تم تقديم الشكوى بنجاح.");
-      setDescription("");
-      setDefendantName("");
-      setModalOpen(false);
-    } catch (err) {
-      if (err.response && err.response.data) {
-        setError(err.response.data.defendant_full_name || "حدث خطأ أثناء تقديم الشكوى.");
-      } else {
-        setError("حدث خطأ في الاتصال بالخادم.");
       }
+    );
+
+    toast.success("Your complaint was submitted successfully");
+    setDescription("");
+    setDefendantName("");
+    setModalOpen(false);
+  } catch (err) {
+    if (err.response && err.response.data) {
+      const msg =
+        err.response.data.defendant_username?.[0] ||
+        "Something went wrong while submitting your complaint";
+      toast.error(msg);
+    } else {
+      toast.error("Unable to connect to the server. Please try again later.");
     }
-  };
+  }
+};
+
+
 
   return (
     <div style={{ fontFamily: "'Inter', sans-serif" }} className="flex flex-col min-h-[100vh]">

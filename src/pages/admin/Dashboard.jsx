@@ -193,11 +193,11 @@ const AdminDashboard = () => {
           <div className="flex flex-wrap gap-6 mt-8">
             <div className="flex items-center gap-2 text-slate-300">
               <Users className="w-5 h-5 text-blue-400" />
-              <span className="text-sm">1,247 Active Users</span>
+              <span className="text-sm">69 Active Users</span>
             </div>
             <div className="flex items-center gap-2 text-slate-300">
               <TrendingUp className="w-5 h-5 text-emerald-400" />
-              <span className="text-sm">+23% This Week</span>
+              <span className="text-sm">+3% This Week</span>
             </div>
           </div>
         </div>

@@ -150,10 +150,10 @@ const Messages = () => {
                     >
                       <div className="flex items-start space-x-3">
                         <img
-                          src={"/placeholder.svg"}
-                          alt={conversation.other_user_full_name}
-                          className="w-10 h-10 rounded-full object-cover ring-2 ring-blue-500"
-                        />
+  src={conversation.profile_picture || "/placeholder.svg"}
+  alt={conversation.other_user_full_name}
+  className="w-10 h-10 rounded-full object-cover ring-2 ring-blue-500"
+/>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center justify-between mb-1">
                             <h3 className="text-sm font-medium text-gray-900 dark:text-white truncate">
@@ -187,10 +187,10 @@ const Messages = () => {
                   <div className="p-4 border-b border-gray-200 dark:border-gray-700">
                     <div className="flex items-center space-x-3">
                       <img
-                        src={"/placeholder.svg"}
-                        alt={selectedConversation.other_user_full_name}
-                        className="w-10 h-10 rounded-full object-cover ring-2 ring-blue-500"
-                      />
+  src={selectedConversation.profile_picture || "/placeholder.svg"}
+  alt={selectedConversation.other_user_full_name}
+  className="w-10 h-10 rounded-full object-cover ring-2 ring-blue-500"
+/>
                       <div>
                         <h3 className="text-lg font-medium text-gray-900 dark:text-white">
                           {selectedConversation.other_user_full_name}

@@ -108,17 +108,16 @@ const handleSubmit = async (e) => {
     console.log("Project created:", response.data)
 
     // ✅ استدعاء خدمة الذكاء الاصطناعي لتقييم المشروع
-    const projectId = response.data.id
-    try {
-      const aiResponse = await axios.get(`http://127.0.0.1:8000/projectowner/evaluate-project/${projectId}`)
-      const score = aiResponse.data.score
-      const evaluation = aiResponse.data.message  // ✅ تعديل الاسم الصحيح من backend
+// ✅ بعد إنشاء المشروع
+const projectId = response.data.id
+// ✅ استدعِ التقييم بدون عرض أي شيء للمستخدم
+try {
+  await axios.get(`http://127.0.0.1:8000/projectowner/evaluate-project/${projectId}/`)
+} catch (aiError) {
+  console.error("AI evaluation failed silently:", aiError.response?.data || aiError.message)
+}
 
-      alert(`✅ AI Score: ${score}\n\n📝 Evaluation:\n${evaluation}`)
-    } catch (aiError) {
-      console.error("AI evaluation failed:", aiError.response?.data || aiError.message)
-      alert("⚠️ Project created, but AI evaluation failed.")
-    }
+
 
     navigate("/project-owner/projects")
   } catch (error) {

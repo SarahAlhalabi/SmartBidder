@@ -42,6 +42,7 @@ import AdminOffers from "./pages/admin/AdminOffers"
 import AdminProjectDetails from "./pages/admin/AdminProjectDetails";
 import AdminNotifications from "./pages/admin/AdminNotifications"
 import AdminReports from "./pages/admin/AdminReports"
+import MonitorActivity from "./pages/admin/MonitorActivity"
 import { ToastContainer } from 'react-toastify';
 function App() {
   return (
@@ -271,6 +272,7 @@ function App() {
     </ProtectedRoute>
   }
 />
+
 <Route
   path="/admin/offers"
   element={
@@ -292,6 +294,14 @@ function App() {
   element={
     <ProtectedRoute allowedRoles={["admin"]}>
       <AdminReports />
+    </ProtectedRoute>
+  }
+/>
+<Route
+  path="/admin/monitor-activity"
+  element={
+    <ProtectedRoute allowedRoles={["admin"]}>
+      <MonitorActivity />
     </ProtectedRoute>
   }
 />

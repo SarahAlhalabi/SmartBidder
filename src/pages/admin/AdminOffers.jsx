@@ -68,37 +68,6 @@ const fetchNegotiations = async (offerId) => {
     fetchOffers();
   }, [searchTerm, projectTitle]);
 
-const handleOfferAction = async (offerId, action) => {
-  const token = localStorage.getItem("accessToken");
-  const updatedStatus = action === "accept" ? "accepted" : action === "reject" ? "rejected" : null;
-
-  try {
-    if (updatedStatus) {
-      await axios.patch(
-        `http://127.0.0.1:8000/adminAccounts/offers/${offerId}/`,
-        { status: updatedStatus },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json"
-          }
-        }
-      );
-
-      toast.success(`Offer ${updatedStatus}`);
-      setOffers((prev) =>
-        prev.map((o) => o.id === offerId ? { ...o, status: updatedStatus } : o)
-      );
-    }
-
-    if (action === "negotiate") {
-      navigate(`/admin/messages?offer=${offerId}`);
-    }
-  } catch (error) {
-    console.error("Error while updating offer status:", error);
-    toast.error("Failed to process offer action");
-  }
-};
 
 
   const formatTimeAgo = (timestamp) => {
@@ -182,118 +151,22 @@ const [editForm, setEditForm] = useState({
                     <p className="text-sm text-gray-600 dark:text-gray-400">
                       Owner: {offer.project_owner_name}
                     </p>
-                    <div className="flex justify-between items-center mt-4">
-  <div className="flex gap-2">
-    <button onClick={() => handleOfferAction(offer.id, "accept")} className="btn-primary text-sm px-4 py-2 flex items-center gap-1">
-      <Check className="w-4 h-4" /> Accept
-    </button>
-    <button onClick={() => handleOfferAction(offer.id, "reject")} className="btn-secondary text-sm px-4 py-2 flex items-center gap-1">
-      <X className="w-4 h-4" /> Reject
-    </button>
-   <button
-  onClick={() => fetchNegotiations(offer.id)}
-  className="btn-secondary text-sm px-4 py-2 flex items-center gap-1"
->
-  Show Negotiation
-</button>
-
-  </div>
-
-<button
-  onClick={() => {
-    setEditingOffer(offer);
-    setEditForm({
-      amount: offer.amount,
-      equity_percentage: offer.equity_percentage,
-      status: offer.status,
-      additional_terms: offer.additional_terms || ""
-    });
-  }}
-  className="btn-secondary text-sm px-6 py-2 ml-auto">
-  Edit
-</button>
+         <div className="flex justify-end mt-4">
+  <button
+    onClick={() => fetchNegotiations(offer.id)}
+    className="btn-secondary text-sm px-4 py-2 flex items-center gap-1"
+  >
+    Show Negotiation
+  </button>
 </div>
+
                   </div>
                 </div>
               </div>
             ))}
           </div>
         )}
-     {editingOffer && (
-  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 px-4">
-    <div className="bg-white dark:bg-gray-900 w-full max-w-md rounded-xl shadow-lg p-6">
-      <h2 className="text-xl font-semibold text-gray-800 dark:text-white mb-4">Edit Offer</h2>
 
-      {/* Amount */}
-      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-        Offer Amount (USD)
-      </label>
-      <input
-        type="number"
-        value={editForm.amount}
-        onChange={(e) => setEditForm({ ...editForm, amount: e.target.value })}
-        className="input-field w-full mb-4"
-        placeholder="e.g. 5000"
-      />
-
-      {/* Equity */}
-      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-        Offer Ownership (%)
-      </label>
-      <input
-        type="number"
-        value={editForm.equity_percentage}
-        onChange={(e) => setEditForm({ ...editForm, equity_percentage: e.target.value })}
-        className="input-field w-full mb-4"
-        placeholder="e.g. 10"
-      />
-
-      {/* Additional Terms */}
-      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-        Additional Terms (Optional)
-      </label>
-      <textarea
-        rows="3"
-        value={editForm.additional_terms}
-        onChange={(e) => setEditForm({ ...editForm, additional_terms: e.target.value })}
-        className="input-field w-full mb-6"
-        placeholder="Any additional terms or conditions..."
-      />
-
-      {/* Buttons */}
-      <div className="flex justify-end gap-2">
-        <button
-          onClick={() => setEditingOffer(null)}
-          className=" btn-secondary px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-full  shadow-sm hover:bg-gray-50"
-        >
-          Cancel
-        </button>
-        <button
-          onClick={async () => {
-            const token = localStorage.getItem("accessToken");
-            try {
-              await axios.patch(
-                `http://127.0.0.1:8000/adminAccounts/offers/${editingOffer.id}/`,
-                editForm,
-                { headers: { Authorization: `Bearer ${token}` } }
-              );
-              toast.success("Offer updated");
-              setOffers((prev) =>
-                prev.map((o) => o.id === editingOffer.id ? { ...o, ...editForm } : o)
-              );
-              setEditingOffer(null);
-            } catch (err) {
-              toast.error("Failed to update offer");
-            }
-          }}
-          className="btn-secondary px-6 py-3 bg-indigo-600 text-white rounded-full shadow hover:bg-indigo-700"
-        >
-          Save
-        </button>
-      </div>
-    </div>
-  </div>
-)}
 {showNegotiationModal && (
   <div className="fixed inset-0 z-50 bg-black bg-opacity-50 flex justify-center items-center px-4">
     <div className="bg-white dark:bg-gray-900 w-full max-w-2xl rounded-xl p-6 shadow-lg overflow-y-auto max-h-[80vh]">

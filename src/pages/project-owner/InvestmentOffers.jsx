@@ -60,37 +60,37 @@ const [pendingAction, setPendingAction] = useState("")
 
 const submitReview = async () => {
   if (!selectedOffer) return;
-
-  console.log("selectedOffer.investor_id:", selectedOffer.investor_id, typeof selectedOffer.investor_id);
-  console.log("rating:", rating, typeof rating);
-  console.log("comment:", comment);
-
   const token = localStorage.getItem("accessToken");
 
-  const payload = {
-    reviewed: selectedOffer.investor_id,
-    rating,
-    comment: comment || "",
-  };
-
-  console.log("Payload to send:", payload);
-
   try {
-    const res = await axios.post("http://127.0.0.1:8000/accounts/reviews/submit/", payload, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
+    if (rating > 0) {
+      const payload = {
+        rating,
+        comment: comment || "",
+      };
+console.log("Review Payload:", payload)
 
-    toast.success("Review submitted successfully");
+      await axios.post(
+        `http://127.0.0.1:8000/accounts/offers/${selectedOffer.id}/review/`,
+        payload,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      toast.success("Review submitted successfully");
+    }
+
+    await performActionAfterRating();
+  } catch (error) {
+    toast.error("Failed to submit review or action");
+    console.error(error);
+  } finally {
     setShowRatingModal(false);
     setRating(0);
     setComment("");
-  } catch (error) {
-    console.error("Failed to submit review:", error.response?.data || error);
-    toast.error("Failed to submit review");
   }
 };
+
+
 
 
 
@@ -98,32 +98,23 @@ const submitReview = async () => {
     setFilters({ ...filters, [key]: value })
   }
 
-const handleOfferAction = async (offerId, action) => {
+const handleOfferAction = (offerId, action) => {
+  const offer = offers.find(o => o.id === offerId);
+  if (!offer) return;
+
+  setSelectedOffer(offer);
+  setPendingAction(action);
+  setShowRatingModal(true);
+};
+const performActionAfterRating = async () => {
+  if (!selectedOffer || !pendingAction) return;
   const token = localStorage.getItem("accessToken");
 
-  if (action === "reject") {
-    try {
-      await axios.post(`http://127.0.0.1:8000/investor/offers/${offerId}/reject/`, {}, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
-      toast.success("Offer rejected successfully");
-
-      setOffers((prev) =>
-        prev.map((offer) =>
-          offer.id === offerId ? { ...offer, status: "rejected" } : offer
-        )
-      );
-    } catch (error) {
-      console.error("رفض العرض فشل:", error);
-      toast.error("❌ Failed to reject the offer");
-    }
-  }
-
-  if (action === "accept") {
-    try {
-      const response = await axios.patch(
-        `http://127.0.0.1:8000/projectowner/offers/${offerId}/update-status/`,
+  try {
+    if (pendingAction === "accept") {
+      
+      await axios.patch(
+        `http://127.0.0.1:8000/projectowner/offers/${selectedOffer.id}/update-status/`,
         { status: "Accepted" },
         {
           headers: {
@@ -132,27 +123,41 @@ const handleOfferAction = async (offerId, action) => {
           },
         }
       );
-
       toast.success("Offer accepted successfully");
-
-      // تحديث الحالة في الواجهة
-      setOffers((prev) =>
-        prev.map((offer) =>
-          offer.id === offerId
-            ? { ...offer, status: "accepted" }
-            : { ...offer, status: "rejected" }
+      setOffers(prev =>
+        prev.map(o =>
+          o.id === selectedOffer.id ? { ...o, status: "accepted" } : { ...o, status: "rejected" }
         )
       );
-    } catch (error) {
-      console.error("قبول العرض فشل:", error);
-      toast.error("❌ Failed to accept the offer");
     }
-  }
 
-  if (action === "negotiate") {
-    navigate(`/project-owner/messages?offer=${offerId}`);
+    if (pendingAction === "reject") {
+      await axios.post(
+        `http://127.0.0.1:8000/investor/offers/${selectedOffer.id}/reject/`,
+        {},
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      toast.success("Offer rejected successfully");
+      setOffers(prev =>
+        prev.map(o =>
+          o.id === selectedOffer.id ? { ...o, status: "rejected" } : o
+        )
+      );
+    }
+  } catch (error) {
+    toast.error("Failed to process offer action");
+    if (error.response) {
+  console.error("Backend error:", error.response.data);
+} else {
+  console.error("Unexpected error:", error);
+}
+
+  } finally {
+    setSelectedOffer(null);
+    setPendingAction("");
   }
 };
+
 
   const filteredOffers = offers.filter((offer) => {
     const matchesSearch =
@@ -234,7 +239,16 @@ const handleOfferAction = async (offerId, action) => {
       />
 
       <div className="flex justify-end gap-2">
-        <button onClick={() => setShowRatingModal(false)} className="btn-secondary">Cancel</button>
+        <button
+  onClick={() => {
+    setShowRatingModal(false);
+    performActionAfterRating(); // متابعة القبول/الرفض بدون تقييم
+  }}
+  className="btn-secondary"
+>
+  Skip & Continue
+</button>
+
         <button
           onClick={submitReview}
           className="btn-primary"
@@ -332,16 +346,7 @@ const handleOfferAction = async (offerId, action) => {
     <button onClick={() => handleOfferAction(offer.id, "negotiate")} className="btn-secondary text-sm px-4 py-2 flex items-center gap-1">
       <MessageSquare className="w-4 h-4" /> {t("negotiate")}
     </button>
-   <button
-  onClick={() => {
-    console.log("Selected offer object:", offer); 
-    setSelectedOffer(offer); // تأكد أن offer يحتوي على investor_id
-    setShowRatingModal(true);
-  }}
-  className="btn-secondary text-sm px-4 py-2"
->
-  Rate Investor
-</button>
+ 
 
 
   </div>

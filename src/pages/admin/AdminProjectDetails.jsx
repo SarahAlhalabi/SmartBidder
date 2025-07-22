@@ -333,12 +333,6 @@ useEffect(() => {
               </div>
 
               <div className="mt-6 pt-4 border-t border-gray-200 dark:border-gray-600 space-y-4">
-  <button
-    onClick={() => setShowOfferModal(true)}
-    className="btn-primary w-full"
-  >
-    Edit
-  </button>
 
 <button
   onClick={() => setShowDeleteModal(true)}

@@ -126,25 +126,16 @@ useEffect(() => {
                 {investor.rank}
               </div>
               <img
-                src={investor.image}
+                src={investor.profile_picture || "/placeholder.svg"}
                 alt={investor.name}
                 className="w-20 h-20 mx-auto rounded-full mb-4 border-4 border-transparent hover:border-green-500 transition"
               />
-              <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-1">{investor.name}</h3>
+              <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-1">{investor.user.full_name}</h3>
               <div className="flex items-center justify-center space-x-1 text-yellow-500 mb-3">
                 <Star className="w-4 h-4 fill-current" />
-                <span className="text-lg font-semibold text-gray-800 dark:text-white">{investor.rating}</span>
+                <span className="text-lg font-semibold text-gray-800 dark:text-white">{investor.rating_score}</span>
               </div>
-              <div className="text-sm text-gray-600 dark:text-gray-400 space-y-1">
-                <div>Investments: <strong>{investor.totalInvestments}</strong></div>
-                <div>Total: <strong>${investor.totalAmount.toLocaleString()}</strong></div>
-                <div>Success Rate: <strong className="text-green-500">{investor.successRate}%</strong></div>
-              </div>
-              <div className="flex flex-wrap justify-center gap-2 mt-4">
-                {investor.specialties.map((s, i) => (
-                  <span key={i} className="bg-primary-100 text-primary-800 dark:bg-primary-900/30 dark:text-primary-300 px-2 py-1 text-xs rounded-full">{s}</span>
-                ))}
-              </div>
+            
              
             </motion.div>
           ))}
@@ -159,10 +150,7 @@ useEffect(() => {
                 <th className="px-4 py-2">Rank</th>
                 <th className="px-4 py-2">Investor</th>
                 <th className="px-4 py-2">Rating</th>
-                <th className="px-4 py-2">Investments</th>
-                <th className="px-4 py-2">Amount</th>
-                <th className="px-4 py-2">Success</th>
-                <th className="px-4 py-2">Specialties</th>
+              
                 <th className="px-4 py-2">Action</th>
               </tr>
             </thead>
@@ -175,23 +163,12 @@ useEffect(() => {
                     </span>
                   </td>
                   <td className="px-4 py-3 flex items-center gap-2">
-                    <img src={inv.image} className="w-8 h-8 rounded-full" />
-                    <span className="text-gray-900 dark:text-white">{inv.name}</span>
+                  <img src={inv.profile_picture || "/placeholder.svg"} className="w-8 h-8 rounded-full" />
+<span>{inv.user.full_name}</span>
                   </td>
                   <td className="px-4 py-3 flex items-center gap-1 text-yellow-500">
-                    <Star className="w-4 h-4 fill-current" /> {inv.rating}
-                  </td>
-                  <td className="px-4 py-3">{inv.totalInvestments}</td>
-                  <td className="px-4 py-3">${inv.totalAmount.toLocaleString()}</td>
-                  <td className="px-4 py-3 text-green-600 font-semibold">{inv.successRate}%</td>
-                  <td className="px-4 py-3 flex gap-1 flex-wrap">
-                    {inv.specialties.map((s) => (
-                      <span key={s} className="bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 px-2 py-1 rounded-full text-xs">
-                        {s}
-                      </span>
-                    ))}
-                  </td>
-                  
+                    <Star className="w-4 h-4 fill-current" /> {inv.rating_score}
+                  </td>                  
                 </tr>
               ))}
             </tbody>
