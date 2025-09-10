@@ -72,32 +72,30 @@ src/
 **Landing Page**  
 <img width="907" alt="Landing" src="https://github.com/user-attachments/assets/d689cc98-ddf9-4b0f-830e-4b6550b820e6" />
 
-**Dashboard**  
+**Entrepreneur Dashboard**  
 <img width="1035" alt="Dashboard" src="https://github.com/user-attachments/assets/e8583cd2-5c3c-4dba-9514-0b47ade2cc34" />
 
-**Project Details**  
+**Create Project**  
 <img width="1000" alt="Project Details" src="https://github.com/user-attachments/assets/aee1a231-9445-4892-b4a5-a8999e0ebbd2" />
 
-**Admin Panel**  
+**Enhance project description**  
 <img width="1035" alt="Admin Panel" src="https://github.com/user-attachments/assets/bf6b0dde-34a8-4189-8fc7-167596757762" />
 
-**Notifications**  
+**investment offers**  
 <img width="1035" alt="Notifications" src="https://github.com/user-attachments/assets/1d30de18-a540-4ed0-a2fb-1a2a65266ac7" />
 
-**Offers**  
+**Negotiations**  
 <img width="1035" alt="Offers" src="https://github.com/user-attachments/assets/ef95ebbe-6515-4c09-a0ed-03450bf492ab" />
-
-**Feasibility Study**  
-<img width="1035" alt="Feasibility" src="https://github.com/user-attachments/assets/cbe5f3dd-bae6-4a94-b4a5-a3be3a941ae9" />
 
 **Investor Dashboard**  
 <img width="1054" alt="Investor Dashboard" src="https://github.com/user-attachments/assets/d349a65f-1d6e-40b5-bf7d-6f1301c7faf3" />
 
-**Messaging**  
+**Browse projects**  
 <img width="776" alt="Messaging" src="https://github.com/user-attachments/assets/0581d7b5-6b9e-49a4-862c-1e347103654e" />
 
-**AI Assistant**  
-<img width="776" alt="AI Assistant" src="https://github.com/user-attachments/assets/31fa8182-72e9-4d9c-a60c-6d7378347744" />
+**Admin dashboard**  
+<img width="956" height="1250" alt="image" src="https://github.com/user-attachments/assets/2c2790fc-ae26-4f4a-973c-c58f037b0cb8" />
+
 
 ---
 
